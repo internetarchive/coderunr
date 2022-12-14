@@ -47,6 +47,10 @@ else
   #     cd /prevu/$BRANCH
   #     vr i
 
+  # offshoot DOCROOT=build
+  #     npm i
+  #     npm run build
+
 fi
 
 
@@ -55,10 +59,11 @@ grep -E "^$HOST\$" /etc/Caddyfile  ||  (
 
   echo "
 $HOST {
-  root * $DIR/$DOCROOT
-  file_server
+\troot * $DIR/$DOCROOT
+\tfile_server
 }
 " | sudo tee -a /etc/Caddyfile
 
-  echo xxx caddy reload
+  cd /etc/
+  sudo /usr/bin/caddy reload
 )
