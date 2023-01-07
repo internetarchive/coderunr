@@ -32,10 +32,19 @@ HOST=${REPO}${EXTRA}.$DOMAIN
   sudo mkdir -m777 -p $CLONED_CACHE
   git clone $CLONE $CLONED_CACHE
 )
+(
+  cd $CLONED_CACHE
+  git pull  ||  (
+    # git config --global --add safe.directory /private/var/tmp/prevu/www/lohi/__clone # xxx workaround root owner issue (when running locally on mac, at least)
+    git pull
+  )
+)
+
 
 if [ -e $DIR ]; then
-  echo 'xxx?'
-  # xxx git pull ?
+  cd $DIR
+  git checkout -b $BRANCH  ||  git checkout $BRANCH  # xxx necessary?
+  git pull
 else
   rsync -qav $CLONED_CACHE/ $DIR/
   cd $DIR
@@ -55,7 +64,7 @@ fi
 
 
 # ensure hostname is known to caddy
-grep -E "^$HOST\$" /etc/Caddyfile  ||  (
+grep -E "^$HOST {\$" /etc/Caddyfile  ||  (
 
   echo "
 $HOST {
@@ -67,3 +76,19 @@ $HOST {
   cd /etc/
   sudo /usr/bin/caddy reload
 )
+
+exit 0 # xxx petabox setup vvvv
+
+export REGISTRY=registry.archive.org GROUP=ia REPO=petabox;
+
+docker run -d --restart=always -v /prevu/$GROUP/${REPO}:/prevu --name=$GROUP-$REPO \
+  -e NOMAD_PORT_http=6666 \
+  \
+  --net=host  \
+  -v /opt/.petabox/petabox-prod.xml:/opt/.petabox/petabox-prod.xml \
+  -v /opt/.petabox/dbserver:/opt/.petabox/dbserver \
+  \
+  $REGISTRY/$GROUP/$REPO/master
+
+
+-p 6666:6666 # non petabox
