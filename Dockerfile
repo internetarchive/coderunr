@@ -1,6 +1,6 @@
 FROM alpine
 
-RUN apk add zsh
+RUN apk add zsh caddy
 
 WORKDIR /app
 COPY . .

@@ -48,7 +48,7 @@ if [ -e $DIR ]; then
   git checkout -b $BRANCH  ||  git checkout $BRANCH  # xxx necessary?
   git pull
 else
-  rsync -qav $CLONED_CACHE/ $DIR/
+  cp -pr $CLONED_CACHE/ $DIR/
   cd $DIR
   git checkout $BRANCH
   echo xxx run any optional initial build step
@@ -85,7 +85,7 @@ $HOST {
 " | sudo tee -a /etc/caddy/Caddyfile
 
   cd /etc/
-  sudo /usr/bin/caddy reload --config /etc/caddy/Caddyfile
+  docker exec zsh -c '/usr/sbin/caddy reload --config /etc/caddy/Caddyfile'
 )
 
 echo "\n\nhttps://$HOST\n\nSUCCESS PREVU\n\n"

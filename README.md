@@ -7,9 +7,12 @@ work-in-progress
 
 ## From editor save to live website in seconds
 - Setup a DNS wildcard to a Virtual Machine that you can `ssh` into, with `docker`.
+  - VM will need `git` pkg installed.
 - Run our container (xxx)
 ```sh
-docker run -d -v --net=host --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /prevu:/prevu --restart=always --name prevu -d ghcr.io/internetarchive/prevu
+docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /prevu:/prevu -v /etc/caddy/Caddyfile:/etc/caddy/Caddyfile \
+  --restart=always --name prevu -d ghcr.io/internetarchive/prevu:main
 ```
 - Setup VSCode (or similar) to run a command on every file save.
   - Install 'Run on Save' extension -- use this link since there are 2+ such named extensions (!)
