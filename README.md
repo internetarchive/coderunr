@@ -8,7 +8,7 @@ work-in-progress
 ## From editor save to live website in seconds
 - Setup a DNS wildcard to a Virtual Machine that you can `ssh` into, with `docker`.
   - VM will need `git` pkg installed.
-- Run our container (xxx)
+- Run our container
 ```sh
 docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.sock --pull=always \
   -v /prevu:/prevu -v /etc/caddy:/etc/caddy \

@@ -84,7 +84,6 @@ $HOST {
 }
 " | sudo tee -a /etc/caddy/Caddyfile
 
-  cd /etc/
   docker exec prevu zsh -c '/usr/sbin/caddy reload --config /etc/caddy/Caddyfile'
 )
 
@@ -109,9 +108,11 @@ petabox.code.archive.org {
 }
 '
 
-docker cp /prevu/ia/petabox/master/etc/nginx/nginx.conf   ia-petabox:etc/nginx/nginx.conf
-docker cp /prevu/ia/petabox/master/etc/nginx/archive.conf ia-petabox:etc/nginx/archive.conf
+cat       /prevu/ia/petabox/master/www/common/ia | docker exec -i ia-petabox zsh -c 'cat > www/common/ia'
+docker cp /prevu/ia/petabox/master/etc/nginx/nginx.conf   ia-petabox:etc/nginx/
+docker cp /prevu/ia/petabox/master/etc/nginx/archive.conf ia-petabox:etc/nginx/
 docker exec -it ia-petabox zsh -c '/usr/local/sbin/nginx -s reload'
 
+docker exec -it ia-petabox zsh -c 'cd /prevu/master && vr i'
 
 -p 6666:6666 # non petabox
