@@ -1,27 +1,32 @@
-#!/bin/zsh -ex
+#!/bin/zsh -eu
 
-GROUP=${1:-"www"}
-REPO=${2:-"av"}
-BRANCH=${3:-"main"}
-DOCROOT=${4:-"www"}
+set -o allexport
 
-GIT=git.archive.org
-
-CLONE=${5:-"https://$GIT/$GROUP/$REPO.git"} # xxx
-CLONE=${5:-"git@$GIT:$GROUP/$REPO"} # xxx
-
-REGISTRY=registry.archive.org
-IMG=$REGISTRY/GROUP/$REPO/master
-DOMAIN=code.archive.org
 TOP=/prevu
-CLONED_CACHE=$TOP/$GROUP/$REPO/__clone
+DOCROOT=www # xxx
+REGISTRY=registry.archive.org # xxx
+DOMAIN=code.archive.org
 
-DIR=$TOP/$GROUP/$REPO/$BRANCH
+CLONE=$(head -1 $INCOMING)
+BRANCH=$(head -2 $INCOMING |tail -1)
+
+GROUP_REPO=$(echo "$CLONE" | perl -pe 's=\.git$==; s=/+$==' |tr : / |rev |cut -f1-2 -d/ |rev)
+GROUP=$(echo "$GROUP_REPO" |cut -d/ -f1)
+ REPO=$(echo "$GROUP_REPO" |cut -d/ -f2)
 
 EXTRA="-$BRANCH"
 [ $BRANCH = main   ] && EXTRA=
 [ $BRANCH = master ] && EXTRA=
-HOST=${REPO}${EXTRA}.$DOMAIN
+HOST=${REPO}${EXTRA}.$DOMAIN # xxx optional username if collision or yml config to use them
+
+IMG=$REGISTRY/$GROUP/$REPO/master # xxx or main... fish out from below cloned repo &
+
+CLONED_CACHE=$TOP/$GROUP/$REPO/__clone
+
+
+DIR=$TOP/$GROUP/$REPO/$BRANCH
+env
+set -x
 
 
 [ -e $TOP              ] || sudo mkdir -m777 $TOP
@@ -29,15 +34,12 @@ HOST=${REPO}${EXTRA}.$DOMAIN
 [ -e $TOP/$GROUP/$REPO ] || sudo mkdir -m777 $TOP/$GROUP/$REPO
 
 [ -e $CLONED_CACHE ]  ||  (
-  sudo mkdir -m777 -p $CLONED_CACHE
+  mkdir  -p $CLONED_CACHE
   git clone $CLONE $CLONED_CACHE
 )
 (
   cd $CLONED_CACHE
-  git pull  ||  (
-    # git config --global --add safe.directory /private/var/tmp/prevu/www/lohi/__clone # xxx workaround root owner issue (when running locally on mac, at least)
-    git pull
-  )
+  git pull
 )
 
 
@@ -63,20 +65,30 @@ else
 fi
 
 
+
+# now copy edited/save file in place
+mkdir -p $(dirname "$FILE")
+tail -n +3 $INCOMING >| $FILE
+rm -fv $INCOMING
+
+
+
+
 # ensure hostname is known to caddy
-grep -E "^$HOST {\$" /etc/Caddyfile  ||  (
+grep -E "^$HOST {\$" /etc/caddy/Caddyfile  ||  (
 
   echo "
 $HOST {
 \troot * $DIR/$DOCROOT
 \tfile_server
 }
-" | sudo tee -a /etc/Caddyfile
+" | sudo tee -a /etc/caddy/Caddyfile
 
   cd /etc/
   sudo /usr/bin/caddy reload
 )
 
+echo "\n\nhttps://$HOST\n\nSUCCESS PREVU\n\n"
 exit 0 # xxx petabox setup vvvv
 
 export REGISTRY=registry.archive.org GROUP=ia REPO=petabox;
