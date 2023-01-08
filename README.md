@@ -18,6 +18,7 @@ docker run -d -v --net=host --privileged -v /var/run/docker.sock:/var/run/docker
 - Configure VSCode Settings:
   - Change `example.com` to your `ssh`-able `docker` VM
 ```json
+"runOnSave.statusMessageTimeout": 600000, // 10 minutes
 "runOnSave.commands": [{
   "match": "/dev/",
   "command": "cd '${workspaceFolder}'  &&  (git config --get remote.origin.url && git rev-parse --abbrev-ref HEAD && cat '${file}') | ssh example.com 'export INCOMING=$(mktemp) REPO=${workspaceFolderBasename} FILE=${fileRelative}  &&  cat >| $INCOMING  &&  /prevu/deploy.sh'  &&  echo SUCCESS",

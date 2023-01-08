@@ -68,7 +68,7 @@ fi
 
 # now copy edited/save file in place
 mkdir -p $(dirname "$FILE")
-tail -n +3 $INCOMING >| $FILE
+tail -n +3 $INCOMING >| "$FILE" # omit the top 2 lines used for git info
 rm -fv $INCOMING
 
 
@@ -109,7 +109,7 @@ petabox.code.archive.org {
 }
 '
 
-docker cp /prevu/ia/petabox/master/etc/nginx/nginx.conf ia-petabox:etc/nginx/nginx.conf
+docker cp /prevu/ia/petabox/master/etc/nginx/nginx.conf   ia-petabox:etc/nginx/nginx.conf
 docker cp /prevu/ia/petabox/master/etc/nginx/archive.conf ia-petabox:etc/nginx/archive.conf
 docker exec -it ia-petabox zsh -c '/usr/local/sbin/nginx -s reload'
 
