@@ -85,7 +85,7 @@ $HOST {
 " | sudo tee -a /etc/caddy/Caddyfile
 
   cd /etc/
-  docker exec zsh -c '/usr/sbin/caddy reload --config /etc/caddy/Caddyfile'
+  docker exec prevu zsh -c '/usr/sbin/caddy reload --config /etc/caddy/Caddyfile'
 )
 
 echo "\n\nhttps://$HOST\n\nSUCCESS PREVU\n\n"
