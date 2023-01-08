@@ -10,7 +10,7 @@ work-in-progress
   - VM will need `git` pkg installed.
 - Run our container (xxx)
 ```sh
-docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.sock \
+docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.sock --pull=always \
   -v /prevu:/prevu -v /etc/caddy/Caddyfile:/etc/caddy/Caddyfile \
   --restart=always --name prevu -d ghcr.io/internetarchive/prevu:main
 ```
