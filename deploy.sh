@@ -85,7 +85,7 @@ $HOST {
 " | sudo tee -a /etc/caddy/Caddyfile
 
   cd /etc/
-  sudo /usr/bin/caddy reload
+  sudo /usr/bin/caddy reload --config /etc/caddy/Caddyfile
 )
 
 echo "\n\nhttps://$HOST\n\nSUCCESS PREVU\n\n"
@@ -101,6 +101,17 @@ docker run -d --restart=always -v /prevu/$GROUP/${REPO}:/prevu --name=$GROUP-$RE
   -v /opt/.petabox/dbserver:/opt/.petabox/dbserver \
   \
   $REGISTRY/$GROUP/$REPO/master
+
+# manually change /etc/caddy/Caddyfile:
+echo '
+petabox.code.archive.org {
+  reverse_proxy  localhost:6666
+}
+'
+
+docker cp /prevu/ia/petabox/master/etc/nginx/nginx.conf ia-petabox:etc/nginx/nginx.conf
+docker cp /prevu/ia/petabox/master/etc/nginx/archive.conf ia-petabox:etc/nginx/archive.conf
+docker exec -it ia-petabox zsh -c '/usr/local/sbin/nginx -s reload'
 
 
 -p 6666:6666 # non petabox
