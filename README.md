@@ -1,11 +1,11 @@
-# prevu - website edits live in seconds!
+# prevu - website edits live in seconds
 
 ## Deploy saved changes to website "preview apps" -- _without_ commits, pushes & full CI/CD
 
 work-in-progress
 
 
-## From editor save to live website in seconds!
+## From editor save to live website in seconds
 - Setup a DNS wildcard to a Virtual Machine that you can `ssh` into, with `docker`.
 - Run our container (xxx)
 ```sh
