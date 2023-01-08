@@ -11,7 +11,7 @@ work-in-progress
 - Run our container (xxx)
 ```sh
 docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.sock --pull=always \
-  -v /prevu:/prevu -v /etc/caddy/Caddyfile:/etc/caddy/Caddyfile \
+  -v /prevu:/prevu -v /etc/caddy:/etc/caddy \
   --restart=always --name prevu -d ghcr.io/internetarchive/prevu:main
 ```
 - Setup VSCode (or similar) to run a command on every file save.
