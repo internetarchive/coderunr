@@ -3,7 +3,6 @@
 set -o allexport
 
 TOP=/prevu
-DOCROOT=www # xxx
 REGISTRY=registry.archive.org # xxx
 DOMAIN=code.archive.org
 
@@ -65,6 +64,14 @@ else
 fi
 
 
+# xxx do any initial build step here...
+
+DOCROOT=www # xxx
+[ ! -e $DOCROOT ] && [ -e public ] && DOCROOT=public
+[ ! -e $DOCROOT ] && [ -e build  ] && DOCROOT=build
+[ ! -e $DOCROOT ] && [ -e public ] && DOCROOT=www
+[ ! -e $DOCROOT ] && mkdir www && (cd www && wget https://raw.githubusercontent.com/internetarchive/prevu/main/www/index.html )
+
 
 # now copy edited/save file in place
 mkdir -p $(dirname "$FILE")
@@ -92,7 +99,7 @@ exit 0 # xxx petabox setup vvvv
 
 export REGISTRY=registry.archive.org GROUP=ia REPO=petabox;
 
-docker run -d --restart=always -v /prevu/$GROUP/${REPO}:/prevu --name=$GROUP-$REPO \
+docker run -d --restart=always --pull=always -v /prevu/$GROUP/${REPO}:/prevu --name=$GROUP-$REPO \
   -e NOMAD_PORT_http=6666 \
   \
   --net=host  \

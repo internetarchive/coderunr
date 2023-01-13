@@ -21,14 +21,15 @@ docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.so
 - Configure VSCode Settings:
   - Change `example.com` to your `ssh`-able `docker` VM
 ```json
-"runOnSave.statusMessageTimeout": 600000, // 10 minutes
+// Change `example.com` to your `ssh`-able `docker` VM server.
+"runOnSave.statusMessageTimeout": 600000, // allow up to 10 minutes to first-time git clone & setup
 "runOnSave.commands": [{
-  "match": "/dev/",
+  "match": "/dev/", // change to local filename/dir pattern that you'd like using prevu.
+  // Determine workspace's git clone url and git branch; send with saved file contents to server.
   "command": "cd '${workspaceFolder}'  &&  (git config --get remote.origin.url && git rev-parse --abbrev-ref HEAD && cat '${file}') | ssh example.com 'export INCOMING=$(mktemp) REPO=${workspaceFolderBasename} FILE=${fileRelative}  &&  cat >| $INCOMING  &&  /prevu/deploy.sh'  &&  echo SUCCESS",
   "runIn": "backend", // backend|vscode|terminal
   "runningStatusMessage": "🔺🔺🔺 SAVING 🔺🔺🔺",
   "finishStatusMessage": "Saved ✅",
-  "async": false,
 }
 ```
 
