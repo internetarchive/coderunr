@@ -38,30 +38,47 @@ set -x
 
 CFG=/prevu/internetarchive/prevu/main/$GROUP-$REPO.yml # xxx
 
+function cfg-val() {
+  # Returns yaml configuration key, or "" if not present/empty
+  local VAL=
+  if [ -e $CFG ]; then
+    VAL=$(yq -r "$1" $CFG | sed 's/^[ \t]*//;s/[ \t]*$//' | grep -Ev '^#')
+    if [ "$VAL" = "" ]; then
+      VAL=
+    elif [ "$VAL" = null ]; then
+      VAL=
+    fi
+  fi
+  echo -n "$VAL"
+}
+function cfg-vals() {
+  # Returns yaml configuration array of values, as mutliple lines, like cfg-val().
+  # You can split the returned string via NEWLINE characters.
+  local VAL=$(cfg-val "$1" | grep -E ^- | cut -b3-)
+  echo -n "$VAL"
+}
+
+
 [ -e $CLONED_CACHE ]  ||  (
   mkdir  -p $CLONED_CACHE
   git clone $CLONE $CLONED_CACHE || echo nixxx this
 
   # xxx docker start container & run setup tasks
   typeset -a ARGS
-  ARGS=
-  [ -e $CFG ]  &&  ARGS+=($(yq .docker.args $CFG))
-  [ "$ARGS" = null ]  &&  ARGS=
+  ARGS=($(cfg-val .docker.args))
 
-  BRANCH_DEFAULT=main
-  VAL=
-  [ -e $CFG ]  &&  VAL=$(yq .branch.default $CFG)
-  [ "$VAL" != null ]  &&  [ "$VAL" != "" ]  &&  BRANCH_DEFAULT=$VAL
+  BRANCH_DEFAULT=$(cfg-val .branch.default)
+  [ $BRANCH_DEFAULT ]  ||  BRANCH_DEFAULT=main
 
   if [ "$GROUP/$REPO" != "internetarchive/prevu" ]; then
     docker run -d --restart=always --pull=always -v /prevu/$GROUP/${REPO}:/prevu --name=$GROUP-$REPO \
       $ARGS $REGISTRY/$GROUP/$REPO/$BRANCH_DEFAULT
+    sleep 3
   fi
 
   [ -e $CFG ]  &&  (
     IFS=$'\n'
-    for cmd in $(yq -r '.scripts.container.start' $CFG | egrep ^- | cut -b3-); do
-      [ "$cmd" = null ] && continue
+    for cmd in $(cfg-vals .scripts.container.start); do
       docker exec $GROUP-$REPO sh -c "cd /prevu/$BRANCH && $cmd" # xxx prolly should put all cmds into tmp file, pass file in, exec it
     done
   )
@@ -86,9 +103,8 @@ else
 
  [ -e $CFG ]  &&  (
     IFS=$'\n'
-    for cmd in $(yq -r '.scripts.branch.start' $CFG | egrep ^- | cut -b3-); do
-      [ "$cmd" = null ] && continue
-      docker exec $GROUP-$REPO sh -c "cd /prevu/$BRANCH && $cmd" # xxx prolly should put all cmds into tmp file, pass file in, exec it
+    for CMD in $(cfg-vals .scripts.branch.start); do
+      docker exec $GROUP-$REPO sh -c "cd /prevu/$BRANCH && $CMD" # xxx prolly should put all cmds into tmp file, pass file in, exec it
     done
   )
 fi
@@ -96,11 +112,9 @@ fi
 
 # xxx do any initial build step here...
 
-DOCROOT=www # xxx
-[ ! -e $DOCROOT ] && [ -e public ] && DOCROOT=public
-[ ! -e $DOCROOT ] && [ -e build  ] && DOCROOT=build
-[ ! -e $DOCROOT ] && [ -e public ] && DOCROOT=www
-[ ! -e $DOCROOT ] && mkdir www && (cd www && wget https://raw.githubusercontent.com/internetarchive/prevu/main/www/index.html )
+DOCROOT=$(cfg-val .docroot)
+[ "$DOCROOT" = "" ] && DOCROOT=www
+[ ! -e $DOCROOT ] && mkdir $DOCROOT && (cd $DOCROOT && wget https://raw.githubusercontent.com/internetarchive/prevu/main/www/index.html )
 
 
 # now copy edited/save file in place
@@ -114,17 +128,16 @@ rm -fv $INCOMING
 # ensure hostname is known to caddy
 grep -E "^$HOST {\$" /etc/caddy/Caddyfile  ||  (
 
-  VAL=
-  [ -e $CFG ]  &&  VAL=$(yq .reverse_proxy $CFG)
+  PROXY=$(cfg-val .reverse_proxy)
   (
     echo "$HOST {"
-    if [ "$VAL" = null ]  -o  [ "$VAL" = "" ]; then
+    if [ "$PROXY" = "" ]; then
       echo "
 \troot * $DIR/$DOCROOT
 \tfile_server"
 
     else
-      echo "reverse_proxy  $VAL"
+      echo "reverse_proxy  $PROXY"
     fi
     echo "}"
   ) | sudo tee -a /etc/caddy/Caddyfile
