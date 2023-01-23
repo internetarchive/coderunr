@@ -1,0 +1,6 @@
+docroot: build
+scripts:
+  branch:
+    start:
+      - npm i
+      - npm run build

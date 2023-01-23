@@ -11,7 +11,7 @@ work-in-progress
 - Run our container
 ```sh
 docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.sock --pull=always \
-  -v /prevu:/prevu -v /etc/caddy:/etc/caddy \
+  -v /prevu:/prevu -v /tmp:/xxx/tmp -v /etc/caddy:/etc/caddy \
   --restart=always --name prevu -d ghcr.io/internetarchive/prevu:main
 ```
 - Setup VSCode (or similar) to run a command on every file save.
@@ -35,14 +35,35 @@ docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.so
 
 
 ## Notes
-* Off to a promising start -- basic concept working for static file server with build step and triggered re-build steps
-* harder case php fastcgi dual LB/caddy layer idea manual testing seems workable
+- Off to a promising start -- basic concept working for static file server with build step and triggered re-build steps
+- harder case php fastcgi dual LB/caddy layer idea manual testing seems workable
+- user needs to `docker login` (on code.ao, etc.) to any registry they can normally `docker pull` private images from
 
 
 ## TODO
 - xxx commit/push watcher to reset branch (presently does `git pull` on every file saved)
   - wipe local edits for `git push` => `git pull` triggers
-- xxx triggers
+- xxx webhooks
+  - GL per group
+  - GH per organization (!)
 - xxx one docker container per repo, for trigger-based build & incremental build steps
 - xxx option for repo to self-multiplex hostnames => docroots (eg: petabox)
   - this allows for a full custom nginx and/or php webserver stack, etc.
+
+## Work in Progress
+```bash
+
+# xxx `nom-ssh` variant that `cd` you to proper branch, once inside container, eg:
+nomad alloc exec -i -t -task www-av a208c683 zsh -c 'cd /prevu/main; zsh'
+
+# nom-ssh  (use group-project + branch)
+ssh -t -A code 'docker exec -it ia-petabox bash -c "cd /prevu/master; bash"'
+
+# nom-logs (use group-project)
+ssh -t -A code docker logs -f ia-petabox
+
+
+# -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent
+
+
+```

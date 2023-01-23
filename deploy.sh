@@ -2,6 +2,8 @@
 
 set -o allexport
 
+# VM host needs: zsh git yq
+
 TOP=/prevu
 REGISTRY=registry.archive.org # xxx
 DOMAIN=code.archive.org
@@ -18,13 +20,15 @@ EXTRA="-$BRANCH"
 [ $BRANCH = master ] && EXTRA=
 HOST=${REPO}${EXTRA}.$DOMAIN # xxx optional username if collision or yml config to use them
 
-IMG=$REGISTRY/$GROUP/$REPO/master # xxx or main... fish out from below cloned repo &
-
 CLONED_CACHE=$TOP/$GROUP/$REPO/__clone
 
 
 DIR=$TOP/$GROUP/$REPO/$BRANCH
-env
+
+echo BRANCH=$BRANCH
+echo CLONE=$CLONE
+echo CLONED_CACHE=$CLONED_CACHE
+
 set -x
 
 
@@ -32,11 +36,38 @@ set -x
 [ -e $TOP/$GROUP       ] || sudo mkdir -m777 $TOP/$GROUP
 [ -e $TOP/$GROUP/$REPO ] || sudo mkdir -m777 $TOP/$GROUP/$REPO
 
+CFG=/prevu/internetarchive/prevu/main/$GROUP-$REPO.yml # xxx
+
 [ -e $CLONED_CACHE ]  ||  (
   mkdir  -p $CLONED_CACHE
-  git clone $CLONE $CLONED_CACHE
+  git clone $CLONE $CLONED_CACHE || echo nixxx this
+
+  # xxx docker start container & run setup tasks
+  typeset -a ARGS
+  ARGS=
+  [ -e $CFG ]  &&  ARGS+=($(yq .docker.args $CFG))
+  [ "$ARGS" = null ]  &&  ARGS=
+
+  BRANCH_DEFAULT=main
+  VAL=
+  [ -e $CFG ]  &&  VAL=$(yq .branch.default $CFG)
+  [ "$VAL" != null ]  &&  [ "$VAL" != "" ]  &&  BRANCH_DEFAULT=$VAL
+
+  if [ "$GROUP/$REPO" != "internetarchive/prevu" ]; then
+    docker run -d --restart=always --pull=always -v /prevu/$GROUP/${REPO}:/prevu --name=$GROUP-$REPO \
+      $ARGS $REGISTRY/$GROUP/$REPO/$BRANCH_DEFAULT
+  fi
+
+  [ -e $CFG ]  &&  (
+    IFS=$'\n'
+    for cmd in $(yq -r '.scripts.container.start' $CFG | egrep ^- | cut -b3-); do
+      [ "$cmd" = null ] && continue
+      docker exec $GROUP-$REPO sh -c "cd /prevu/$BRANCH && $cmd" # xxx prolly should put all cmds into tmp file, pass file in, exec it
+    done
+  )
 )
 (
+  # xxx trigger on main/master branch pushes --> restart docker container
   cd $CLONED_CACHE
   git pull
 )
@@ -44,23 +75,22 @@ set -x
 
 if [ -e $DIR ]; then
   cd $DIR
-  git checkout -b $BRANCH  ||  git checkout $BRANCH  # xxx necessary?
-  git pull
+  git checkout -b $BRANCH 2>/dev/null  ||  git checkout $BRANCH  # xxx necessary?
+  git pull || ( git stash && git stash drop|cat && git pull )
 else
   cp -pr $CLONED_CACHE/ $DIR/
   cd $DIR
-  git checkout $BRANCH
+  git checkout $BRANCH || git checkout -b $BRANCH # xxx or new unpushed branch
   echo xxx run any optional initial build step
   echo xxx setup watchers on optional file patterns to run sub-steps
-  # docker run --rm -it -v /prevu/$GROUP/$REPO/:/prevu/ $IMG zsh
-  #     --restart=always --name=$GROUP-$REPO
-  #     cd /prevu/$BRANCH
-  #     vr i
 
-  # offshoot DOCROOT=build
-  #     npm i
-  #     npm run build
-
+ [ -e $CFG ]  &&  (
+    IFS=$'\n'
+    for cmd in $(yq -r '.scripts.branch.start' $CFG | egrep ^- | cut -b3-); do
+      [ "$cmd" = null ] && continue
+      docker exec $GROUP-$REPO sh -c "cd /prevu/$BRANCH && $cmd" # xxx prolly should put all cmds into tmp file, pass file in, exec it
+    done
+  )
 fi
 
 
@@ -84,12 +114,20 @@ rm -fv $INCOMING
 # ensure hostname is known to caddy
 grep -E "^$HOST {\$" /etc/caddy/Caddyfile  ||  (
 
-  echo "
-$HOST {
+  VAL=
+  [ -e $CFG ]  &&  VAL=$(yq .reverse_proxy $CFG)
+  (
+    echo "$HOST {"
+    if [ "$VAL" = null ]  -o  [ "$VAL" = "" ]; then
+      echo "
 \troot * $DIR/$DOCROOT
-\tfile_server
-}
-" | sudo tee -a /etc/caddy/Caddyfile
+\tfile_server"
+
+    else
+      echo "reverse_proxy  $VAL"
+    fi
+    echo "}"
+  ) | sudo tee -a /etc/caddy/Caddyfile
 
   docker exec prevu zsh -c '/usr/sbin/caddy reload --config /etc/caddy/Caddyfile'
 )
@@ -97,29 +135,13 @@ $HOST {
 echo "\n\nhttps://$HOST\n\nSUCCESS PREVU\n\n"
 exit 0 # xxx petabox setup vvvv
 
-export REGISTRY=registry.archive.org GROUP=ia REPO=petabox;
 
-docker run -d --restart=always --pull=always -v /prevu/$GROUP/${REPO}:/prevu --name=$GROUP-$REPO \
-  -e NOMAD_PORT_http=6666 \
-  \
-  --net=host  \
-  -v /opt/.petabox/petabox-prod.xml:/opt/.petabox/petabox-prod.xml \
-  -v /opt/.petabox/dbserver:/opt/.petabox/dbserver \
-  \
-  $REGISTRY/$GROUP/$REPO/master
+# petabox needs 8010 UDP ferm port opened.
 
-# manually change /etc/caddy/Caddyfile:
-echo '
-petabox.code.archive.org {
-  reverse_proxy  localhost:6666
-}
-'
 
-cat       /prevu/ia/petabox/master/www/common/ia | docker exec -i ia-petabox zsh -c 'cat > www/common/ia'
-docker cp /prevu/ia/petabox/master/etc/nginx/nginx.conf   ia-petabox:etc/nginx/
-docker cp /prevu/ia/petabox/master/etc/nginx/archive.conf ia-petabox:etc/nginx/
-docker exec -it ia-petabox zsh -c '/usr/local/sbin/nginx -s reload'
+-p 6666:6666 # non petabox # xxx??
 
-docker exec -it ia-petabox zsh -c 'cd /prevu/master && vr i'
 
--p 6666:6666 # non petabox
+# get `yq`
+sudo wget -O  /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.30.8/yq_linux_amd64
+sudo chmod +x /usr/local/bin/yq
