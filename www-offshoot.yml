@@ -2,5 +2,6 @@ docroot: build
 scripts:
   branch:
     start:
+      - export npm_config_cache=/tmp/npm
       - npm i
       - npm run build

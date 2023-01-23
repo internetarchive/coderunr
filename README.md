@@ -8,9 +8,13 @@ work-in-progress
 ## From editor save to live website in seconds
 - Setup a DNS wildcard to a Virtual Machine that you can `ssh` into, with `docker`.
   - VM will need `git` pkg installed.
-- Run our container
+- Run our container below, but:
+  - change `code.archive.org` to whatever your DNS wildcard domain is.
+  - change `registry.archive.org` to whatever default docker container registry to use (github.com/gitlab.com will get autodetected)
 ```sh
 docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.sock --pull=always \
+  -e DOMAIN_WILDCARD=code.archive.org \
+  -e REGISTRY_FALLBACK=registry.archive.org \
   -v /prevu:/prevu -v /tmp:/xxx/tmp -v /etc/caddy:/etc/caddy \
   --restart=always --name prevu -d ghcr.io/internetarchive/prevu:main
 ```
@@ -38,6 +42,8 @@ docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.so
 - Off to a promising start -- basic concept working for static file server with build step and triggered re-build steps
 - harder case php fastcgi dual LB/caddy layer idea manual testing seems workable
 - user needs to `docker login` (on code.ao, etc.) to any registry they can normally `docker pull` private images from
+- if your docker containers are having trouble talking to outside work, check `/etc/default/docker` and try something like `DOCKER_OPTS="--dns 8.8.8.8 --dns 8.8.4.4"` (google public DNS) in case that helps
+
 
 
 ## TODO

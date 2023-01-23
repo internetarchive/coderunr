@@ -1,13 +1,14 @@
 #!/bin/zsh -eu
 
+MYDIR=${0:a:h}
+
+source $MYDIR/.env
+
 set -o allexport
 
 # VM host needs: zsh git yq
 
 TOP=/prevu
-REGISTRY=registry.archive.org # xxx
-DOMAIN=code.archive.org
-
 CLONE=$(head -1 $INCOMING)
 BRANCH=$(head -2 $INCOMING |tail -1)
 
@@ -18,7 +19,7 @@ GROUP=$(echo "$GROUP_REPO" |cut -d/ -f1)
 EXTRA="-$BRANCH"
 [ $BRANCH = main   ] && EXTRA=
 [ $BRANCH = master ] && EXTRA=
-HOST=${REPO}${EXTRA}.$DOMAIN # xxx optional username if collision or yml config to use them
+HOST=${REPO}${EXTRA}.$DOMAIN_WILDCARD # xxx optional username if collision or yml config to use them
 
 CLONED_CACHE=$TOP/$GROUP/$REPO/__clone
 
@@ -62,6 +63,12 @@ function cfg-vals() {
 [ -e $CLONED_CACHE ]  ||  (
   mkdir  -p $CLONED_CACHE
   git clone $CLONE $CLONED_CACHE || echo nixxx this
+
+  # figure out which docker registry to use
+  REGISTRY=$REGISTRY_FALLBACK
+  [ $CLONE =~ github.com ]  &&  REGISTRY=ghcr.io
+  [ $CLONE =~ gitlab.com ]  &&  REGISTRY=registry.gitlab.com
+
 
   # xxx docker start container & run setup tasks
   typeset -a ARGS

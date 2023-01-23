@@ -9,20 +9,15 @@ docker:
 scripts:
   container:
     start:
-      # nixxx these once master mods merged:
-      - cp /prevu/master/www/common/setup.php    www/common/setup.php
-      - cp /prevu/master/etc/nginx/nginx.conf    etc/nginx/nginx.conf
-      - cp /prevu/master/etc/nginx/archive.conf  etc/nginx/archive.conf
+      # example:
       - /usr/local/sbin/nginx -s reload
   branch:
     start:
       # xxx set this up in deploy.sh # xxx do even faster less2css + nav
+      - echo xxx
       - vr i
+      - echo xxx
 triggers:
   # xxx less2css triggers
 
-deploy:
-  # xxx domain: code.archive.org
-
 reverse_proxy: localhost:6666
-# xxx docroot: www/sf
