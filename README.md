@@ -39,10 +39,24 @@ docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.so
 
 
 ## Notes
+- One docker container per repo, for trigger-based build & incremental build steps
+- Option for repo to self-multiplex hostnames => docroots (eg: petabox)
+  - this allows for a full custom nginx and/or php webserver stack, etc.
+
+### Progress notes
 - Off to a promising start -- basic concept working for static file server with build step and triggered re-build steps
 - harder case php fastcgi dual LB/caddy layer idea manual testing seems workable
 - user needs to `docker login` (on code.ao, etc.) to any registry they can normally `docker pull` private images from
 - if your docker containers are having trouble talking to outside work, check `/etc/default/docker` and try something like `DOCKER_OPTS="--dns 8.8.8.8 --dns 8.8.4.4"` (google public DNS) in case that helps
+
+
+### Quirks notes
+- petabox repo needs 8010 UDP ferm port opened.
+- As of now, VM running docker `[prevu]` container needs `yq`.  You can get like this (check https://github.com/mikefarah/yq/releases/latest for alternate OS/ARC if not linux amd64):
+```sh
+sudo wget -O  /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.30.8/yq_linux_amd64
+sudo chmod +x /usr/local/bin/yq
+```
 
 
 
@@ -52,9 +66,6 @@ docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.so
 - xxx webhooks
   - GL per group
   - GH per organization (!)
-- xxx one docker container per repo, for trigger-based build & incremental build steps
-- xxx option for repo to self-multiplex hostnames => docroots (eg: petabox)
-  - this allows for a full custom nginx and/or php webserver stack, etc.
 
 ## Work in Progress
 ```bash
@@ -67,9 +78,4 @@ ssh -t -A code 'docker exec -it ia-petabox bash -c "cd /prevu/master; bash"'
 
 # nom-logs (use group-project)
 ssh -t -A code docker logs -f ia-petabox
-
-
-# -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent
-
-
 ```

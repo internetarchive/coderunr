@@ -2,7 +2,9 @@
 
 MYDIR=${0:a:h}
 
+# NOTE: this defines $REGISTRY_FALLBACK and $DOMAIN_WILDCARD
 source $MYDIR/.env
+
 
 set -o allexport
 
@@ -37,7 +39,41 @@ set -x
 [ -e $TOP/$GROUP       ] || sudo mkdir -m777 $TOP/$GROUP
 [ -e $TOP/$GROUP/$REPO ] || sudo mkdir -m777 $TOP/$GROUP/$REPO
 
-CFG=/prevu/internetarchive/prevu/main/$GROUP-$REPO.yml # xxx
+
+CLONE_NEEDED=
+[ -e $CLONED_CACHE ]  ||  CLONE_NEEDED=1
+
+if [ $CLONE_NEEDED ]; then
+  mkdir -p         $CLONED_CACHE
+  git clone $CLONE $CLONED_CACHE
+fi
+
+
+# xxx trigger on main/master branch pushes --> restart docker container
+cd $CLONED_CACHE
+git pull
+
+
+# get branch setup if needed.  `cd` into checked out branch dir
+if [ -e $DIR ]; then
+  BRANCH_NEEDS_SETUP=
+  cd $DIR
+  git checkout -b $BRANCH 2>/dev/null  ||  git checkout $BRANCH  # xxx necessary?
+  git pull || ( git stash && git stash drop|cat && git pull )
+else
+  BRANCH_NEEDS_SETUP=1
+  cp -pr $CLONED_CACHE/ $DIR/
+  cd $DIR
+  git checkout $BRANCH || git checkout -b $BRANCH # xxx or new unpushed branch
+  echo xxx setup watchers on optional file patterns to run sub-steps
+fi
+
+
+
+# now we have enough information to read any YAML customization
+
+CFG=prevu.yml
+[ -e $CFG ]  ||  CFG=/prevu/internetarchive/prevu/main/$GROUP-$REPO.yml # xxx
 
 function cfg-val() {
   # Returns yaml configuration key, or "" if not present/empty
@@ -60,55 +96,49 @@ function cfg-vals() {
 }
 
 
-[ -e $CLONED_CACHE ]  ||  (
-  mkdir  -p $CLONED_CACHE
-  git clone $CLONE $CLONED_CACHE || echo nixxx this
-
-  # figure out which docker registry to use
-  REGISTRY=$REGISTRY_FALLBACK
-  [ $CLONE =~ github.com ]  &&  REGISTRY=ghcr.io
-  [ $CLONE =~ gitlab.com ]  &&  REGISTRY=registry.gitlab.com
 
 
-  # xxx docker start container & run setup tasks
+if [ $CLONE_NEEDED ]; then
+  # automatically start docker container & run container setup tasks
   typeset -a ARGS
   ARGS=($(cfg-val .docker.args))
 
   BRANCH_DEFAULT=$(cfg-val .branch.default)
-  [ $BRANCH_DEFAULT ]  ||  BRANCH_DEFAULT=main
+  [ $BRANCH_DEFAULT ]  ||  BRANCH_DEFAULT=$(git rev-parse --abbrev-ref origin/HEAD | cut -f2- -d/)
+
+
+  # figure out which docker registry to use
+  REGISTRY=$REGISTRY_FALLBACK
+  [[ $CLONE =~ github.com ]]  &&  REGISTRY=ghcr.io
+  [[ $CLONE =~ gitlab.com ]]  &&  REGISTRY=registry.gitlab.com
+
+
+  IMG=$REGISTRY/$GROUP/$REPO/$BRANCH_DEFAULT
+  [[ $CLONE =~ github.com ]]  &&  IMG=$REGISTRY/$GROUP/$REPO:$BRANCH_DEFAULT
+
 
   if [ "$GROUP/$REPO" != "internetarchive/prevu" ]; then
+    # www-av fails w/o --security-opt arg xxx _could_ move to www-av.yml if the only one...
     docker run -d --restart=always --pull=always -v /prevu/$GROUP/${REPO}:/prevu --name=$GROUP-$REPO \
-      $ARGS $REGISTRY/$GROUP/$REPO/$BRANCH_DEFAULT
+      --security-opt seccomp=unconfined \
+      $ARGS $IMG
     sleep 3
   fi
 
-  [ -e $CFG ]  &&  (
+  (
     IFS=$'\n'
-    for cmd in $(cfg-vals .scripts.container.start); do
-      docker exec $GROUP-$REPO sh -c "cd /prevu/$BRANCH && $cmd" # xxx prolly should put all cmds into tmp file, pass file in, exec it
+    for CMD in $(cfg-vals .scripts.container.start); do
+      docker exec $GROUP-$REPO sh -c "cd /prevu/$BRANCH && $CMD" # xxx prolly should put all cmds into tmp file, pass file in, exec it
     done
   )
-)
-(
-  # xxx trigger on main/master branch pushes --> restart docker container
-  cd $CLONED_CACHE
-  git pull
-)
+fi
 
 
-if [ -e $DIR ]; then
-  cd $DIR
-  git checkout -b $BRANCH 2>/dev/null  ||  git checkout $BRANCH  # xxx necessary?
-  git pull || ( git stash && git stash drop|cat && git pull )
-else
-  cp -pr $CLONED_CACHE/ $DIR/
-  cd $DIR
-  git checkout $BRANCH || git checkout -b $BRANCH # xxx or new unpushed branch
-  echo xxx run any optional initial build step
-  echo xxx setup watchers on optional file patterns to run sub-steps
 
- [ -e $CFG ]  &&  (
+
+if [ $BRANCH_NEEDS_SETUP ]; then
+  # now that docker container is up, run any optional initial build step(s) for new branch
+  (
     IFS=$'\n'
     for CMD in $(cfg-vals .scripts.branch.start); do
       docker exec $GROUP-$REPO sh -c "cd /prevu/$BRANCH && $CMD" # xxx prolly should put all cmds into tmp file, pass file in, exec it
@@ -117,7 +147,11 @@ else
 fi
 
 
-# xxx do any initial build step here...
+
+
+
+
+
 
 DOCROOT=$(cfg-val .docroot)
 [ "$DOCROOT" = "" ] && DOCROOT=www
@@ -153,15 +187,3 @@ grep -E "^$HOST {\$" /etc/caddy/Caddyfile  ||  (
 )
 
 echo "\n\nhttps://$HOST\n\nSUCCESS PREVU\n\n"
-exit 0 # xxx petabox setup vvvv
-
-
-# petabox needs 8010 UDP ferm port opened.
-
-
--p 6666:6666 # non petabox # xxx??
-
-
-# get `yq`
-sudo wget -O  /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.30.8/yq_linux_amd64
-sudo chmod +x /usr/local/bin/yq

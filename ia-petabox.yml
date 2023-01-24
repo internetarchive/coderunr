@@ -3,7 +3,7 @@ branch:
   default: master
 
 docker:
-  # xxx registry: registry.archive.org
+  # registry: registry.archive.org
   args: ""
 
 scripts:
@@ -13,11 +13,16 @@ scripts:
       - /usr/local/sbin/nginx -s reload
   branch:
     start:
-      # xxx set this up in deploy.sh # xxx do even faster less2css + nav
-      - echo xxx
-      - vr i
-      - echo xxx
-triggers:
-  # xxx less2css triggers
+      # this is faster than `vr i` -- by not making .min.js (slow part):
+      - mkdir -p www/sf/includes/build.new
+      - vr lessc
+      - vr hash
+      - vr nav
+      - vr hotswap
+      - vr copy-files
+
+triggers: # xxx
+  - '**/*.less'
+  - vr lessc
 
 reverse_proxy: localhost:6666
