@@ -22,8 +22,9 @@ scripts:
       - vr hotswap
       - vr copy-files
 
-triggers: # xxx
-  - www/sf/includes/less/**/
-  - vr lessc
+triggers:
+  # patterns use `grep -E` of the pattern compared to each saved/incoming file name
+  - pattern: www/sf/includes/less/
+    cmd: vr lessc
 
 reverse_proxy: localhost:6666

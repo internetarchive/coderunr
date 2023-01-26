@@ -151,8 +151,6 @@ fi
 
 
 
-
-
 DOCROOT=$(cfg-val .docroot)
 [ "$DOCROOT" = "" ] && DOCROOT=www
 [ ! -e $DOCROOT ] && mkdir $DOCROOT && (cd $DOCROOT && wget https://raw.githubusercontent.com/internetarchive/prevu/main/www/index.html )
@@ -163,6 +161,19 @@ mkdir -p $(dirname "$FILE")
 tail -n +3 $INCOMING >| "$FILE" # omit the top 2 lines used for git info
 rm -fv $INCOMING
 
+
+IDX=0
+while true; do
+  TRIGGER=$(cfg-val ".triggers[$IDX].pattern")
+  [ "$TRIGGER" = "" ]  &&  break
+
+  echo "$FILE" | grep -qE "$TRIGGER" && (
+    CMD=$(cfg-val ".triggers[$IDX].cmd")
+    docker exec $GROUP-$REPO sh -c "cd /prevu/$BRANCH && $CMD" # xxx prolly should put all cmds into tmp file, pass file in, exec it
+  )
+
+  let "IDX=1+$IDX"
+done
 
 
 
