@@ -9,7 +9,8 @@ docker:
 scripts:
   container:
     start:
-      # example:
+      # try to ensure nginx is up first
+      - sleep 15
       - /usr/local/sbin/nginx -s reload
   branch:
     start:
@@ -22,7 +23,7 @@ scripts:
       - vr copy-files
 
 triggers: # xxx
-  - '**/*.less'
+  - www/sf/includes/less/**/
   - vr lessc
 
 reverse_proxy: localhost:6666
