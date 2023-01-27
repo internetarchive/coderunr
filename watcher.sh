@@ -14,8 +14,8 @@ export REGISTRY_FALLBACK=$REGISTRY_FALLBACK
 [ -e /etc/caddy/Caddyfile ]  ||  (
   echo "
 $(hostname -f) {
-  root * /app/www
-  file_server
+\troot * /app/www
+\tfile_server
 }" > /etc/caddy/Caddyfile
 )
 

@@ -3,7 +3,6 @@ branch:
   default: master
 
 docker:
-  # registry: registry.archive.org
   args: "-e NOMAD_PORT_http=6666"
 
 scripts:

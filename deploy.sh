@@ -189,7 +189,7 @@ grep -E "^$HOST {\$" /etc/caddy/Caddyfile  ||  (
 \tfile_server"
 
     else
-      echo "reverse_proxy  $PROXY"
+      echo "\treverse_proxy  $PROXY"
     fi
     echo "}"
   ) | sudo tee -a /etc/caddy/Caddyfile
