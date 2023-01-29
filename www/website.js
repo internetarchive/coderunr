@@ -6,6 +6,8 @@ import { warn } from 'https://av.prod.archive.org/js/util/log.js'
 // xxx File System Change Observer:
 // https://docs.google.com/document/d/1jYXOZGen4z7kNrKnwBk5z4tbGRmGXmQ9nmoyJRm-V9M/edit#heading=h.7nki9mck5t64
 
+const MAX_MESSAGES = 10
+
 let prev
 let next = {}
 let rescanner
@@ -30,24 +32,25 @@ async function scandir(cwd = '', dirh = null) {
       const file = await handle.getFile()
       const path = `${cwd}${file.name}`
       const githead = path.match(/\.git\/HEAD$/)
+      const changed = (prev && (!(path in prev) || prev[path] !== file.lastModified))
 
-      if (path.match(/\.git/))
-        warn({ path })
-
-      if (githead && branch === null)
-        branch = (await file.text()).split('/').pop()
+      if (githead && (branch === null || changed))
+        branch = (await file.text()).split('/').pop().trim()
       else if (!clone && path.match(/\.git\/config$/))
-        clone = ((await file.text()).match(/^\s*url\s*=\s*([\S]+)/) ?? ['']).pop()
+        clone = ((await file.text()).match(/^\s*url\s*=\s*([^\s]+)/m) ?? ['']).pop()
 
-      if (prev && (!(path in prev) || prev[path] !== file.lastModified)) {
-        warn(`${path} changed`)
-        if (githead)
-          warn(`branch now: ${branch}`)
+      if (changed) {
+        msg(`${path} changed`)
+        if (githead) {
+          document.getElementById('info').innerHTML = `
+            clone url: ${clone}<br>
+            branch: ${branch}`
+        }
       }
       next[path] = file.lastModified
     } else if (handle.kind === 'directory') {
       const subdir = `${cwd}${handle.name}/`
-      warn(`dir: ${subdir}`)
+      // warn(`dir: ${subdir}`)
       await scandir(subdir, handle)
     }
   }
@@ -55,7 +58,11 @@ async function scandir(cwd = '', dirh = null) {
   if (cwd === '') {
     // we finished a scan of the top dir
     // warn({ next })
-    warn({ clone, branch })
+    if (!prev) {
+      document.getElementById('info').innerHTML = `
+        clone url: ${clone}<br>
+        branch: ${branch}`
+    }
     prev = next
     next = {}
 
@@ -63,4 +70,10 @@ async function scandir(cwd = '', dirh = null) {
       rescanner = setInterval(scandir, 5000)// Check files every 5 seconds
     }
   }
+}
+
+function msg(msg) {
+  const e = document.getElementById('msgs')
+  const lines = e.innerHTML.split(/<br>/)
+  e.innerHTML = [msg, ...lines.slice(0, MAX_MESSAGES)].join('<br>')
 }
