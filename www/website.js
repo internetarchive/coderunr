@@ -1,4 +1,4 @@
-import { warn } from 'https://av.prod.archive.org/js/util/log.js'
+// import { warn } from 'https://av.prod.archive.org/js/util/log.js'
 
 
 // https://developer.chrome.com/articles/file-system-access/
@@ -40,6 +40,7 @@ async function scandir(cwd = '', dirh = null) {
         clone = ((await file.text()).match(/^\s*url\s*=\s*([^\s]+)/m) ?? ['']).pop()
 
       if (changed) {
+        // eslint-disable-next-line no-use-before-define
         msg(`${path} changed`)
         if (githead) {
           document.getElementById('info').innerHTML = `
@@ -72,8 +73,8 @@ async function scandir(cwd = '', dirh = null) {
   }
 }
 
-function msg(msg) {
+function msg(str) {
   const e = document.getElementById('msgs')
   const lines = e.innerHTML.split(/<br>/)
-  e.innerHTML = [msg, ...lines.slice(0, MAX_MESSAGES)].join('<br>')
+  e.innerHTML = [str, ...lines.slice(0, MAX_MESSAGES)].join('<br>')
 }
