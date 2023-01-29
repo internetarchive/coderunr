@@ -22,5 +22,4 @@ $(hostname -f) {
 
 /usr/sbin/caddy start --config /etc/caddy/Caddyfile
 
-
-sleep 864000 # hang out for 10d for now until incoming webhook should trigger a docker pull/restart
+/app/httpd.js -p5000 --no-cors --no-dotfiles www

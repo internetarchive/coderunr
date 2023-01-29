@@ -1,4 +1,4 @@
-// import { warn } from 'https://av.prod.archive.org/js/util/log.js'
+import { warn } from 'https://av.prod.archive.org/js/util/log.js'
 
 
 // https://developer.chrome.com/articles/file-system-access/
@@ -41,13 +41,14 @@ async function scandir(cwd = '', dirh = null) {
 
       if (changed) {
         // eslint-disable-next-line no-use-before-define
-        msg(`${path} changed`)
+        filechanged(path)
         if (githead) {
           document.getElementById('info').innerHTML = `
             clone url: ${clone}<br>
             branch: ${branch}`
         }
       }
+      // if `.git/refs/remotes/origin/main changes`, seems like a git push happened
       // if (githead || !path.match(/\.git\//)) // only track .git/HEAD in .git/ folder (for now)
       next[path] = file.lastModified
     } else if (handle.kind === 'directory') {
@@ -68,10 +69,17 @@ async function scandir(cwd = '', dirh = null) {
     prev = next
     next = {}
 
-    if (!rescanner) {
+    if (!rescanner)
       rescanner = setInterval(scandir, 5000)// Check files every 5 seconds
-    }
   }
+}
+
+function filechanged(path) {
+  // eslint-disable-next-line no-use-before-define
+  msg(`${path} changed`)
+  fetch('/copy').then((res) => {
+    warn({ res })
+  })
 }
 
 function msg(str) {
