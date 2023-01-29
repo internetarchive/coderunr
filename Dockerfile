@@ -6,5 +6,5 @@ RUN apk add  zsh coreutils caddy
 WORKDIR /app
 COPY . .
 
-USER deno
+# USER deno
 CMD [ "/app/entrypoint.sh" ]
