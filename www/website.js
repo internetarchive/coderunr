@@ -48,6 +48,7 @@ async function scandir(cwd = '', dirh = null) {
             branch: ${branch}`
         }
       }
+      // if (githead || !path.match(/\.git\//)) // only track .git/HEAD in .git/ folder (for now)
       next[path] = file.lastModified
     } else if (handle.kind === 'directory') {
       const subdir = `${cwd}${handle.name}/`
