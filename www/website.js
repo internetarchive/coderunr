@@ -10,6 +10,8 @@ let prev
 let next = {}
 let rescanner
 let dirhandle
+let clone
+let branch = null
 
 // eslint-disable-next-line no-use-before-define
 document.getElementById('dir-sel').addEventListener('click', scandir)
@@ -27,12 +29,25 @@ async function scandir(cwd = '', dirh = null) {
       // warn('handle.name:', handle.name)
       const file = await handle.getFile()
       const path = `${cwd}${file.name}`
-      if (prev && (!(path in prev) || prev[path] !== file.lastModified))
+      const githead = path.match(/\.git\/HEAD$/)
+
+      if (path.match(/\.git/))
+        warn({ path })
+
+      if (githead && branch === null)
+        branch = (await file.text()).split('/').pop()
+      else if (!clone && path.match(/\.git\/config$/))
+        clone = ((await file.text()).match(/^\s*url\s*=\s*([\S]+)/) ?? ['']).pop()
+
+      if (prev && (!(path in prev) || prev[path] !== file.lastModified)) {
         warn(`${path} changed`)
+        if (githead)
+          warn(`branch now: ${branch}`)
+      }
       next[path] = file.lastModified
     } else if (handle.kind === 'directory') {
       const subdir = `${cwd}${handle.name}/`
-      // warn(`dir: ${subdir}`)
+      warn(`dir: ${subdir}`)
       await scandir(subdir, handle)
     }
   }
@@ -40,6 +55,7 @@ async function scandir(cwd = '', dirh = null) {
   if (cwd === '') {
     // we finished a scan of the top dir
     // warn({ next })
+    warn({ clone, branch })
     prev = next
     next = {}
 
