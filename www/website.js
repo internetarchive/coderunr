@@ -77,8 +77,15 @@ async function scandir(cwd = '', dirh = null) {
 function filechanged(path) {
   // eslint-disable-next-line no-use-before-define
   msg(`${path} changed`)
-  fetch('/copy').then((res) => {
-    warn({ res })
+  fetch('/copy', {
+    method: 'POST',
+    headers: {
+      // 'Content-Type': 'application/json'
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'hi\nthere\npork chop\n',
+  }).then(async (res) => {
+    warn('hmm', await res.text(), { res })
   })
 }
 

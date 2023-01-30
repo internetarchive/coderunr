@@ -6,9 +6,11 @@ import main from 'https://deno.land/x/file_server_plus/mod.ts'
 
 import { warn } from 'https://av.prod.archive.org/js/util/log.js'
 
+const decoder = new TextDecoder()
+
 // the static server will call this if it was about to otherwise 404
 // eslint-disable-next-line no-undef
-globalThis.finalHandler = (req) => {
+globalThis.finalHandler = async (req) => {
   const headers = new Headers()
   headers.append('content-type', 'text/html')
 
@@ -16,9 +18,14 @@ globalThis.finalHandler = (req) => {
     const parsed = new URL(req.url)
 
     if (parsed.pathname === '/copy') {
-      // main website
+      let txt = 'get xxx'
+      if (req.method === 'POST') {
+        txt = decoder.decode(await Deno.readAll(req.body))
+        warn({ txt })
+      }
+
       return Promise.resolve(new Response(
-        'hiya',
+        `hiya xxx ${txt}`,
         { status: 200, headers },
       ))
     }

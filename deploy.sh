@@ -127,7 +127,7 @@ if [ $CLONE_NEEDED ]; then
   ARGS=($(cfg-val .docker.args))
 
   if [ "$PORTHOST" != "" ]; then
-    ARGS+=(-p $PORTHOST:$PORT)
+    ARGS+=(-p $PORTHOST:$PORT/tcp)
   fi
 
   BRANCH_DEFAULT=$(cfg-val .branch.default)
