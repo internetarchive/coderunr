@@ -114,10 +114,10 @@ if [ "$PROXY" = "" ]; then
       let PORTHOST="1+$PORTMAX"
       PROXY=localhost:$PORTHOST
     else
-      PORTHOST=xxxxxx
+      PORTHOST=$(echo "$PROXY" | cut -f2 -d :)
     fi
   fi
-if
+fi
 
 
 
