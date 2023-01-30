@@ -96,12 +96,39 @@ function cfg-vals() {
 }
 
 
+PROXY=$(cfg-val .reverse_proxy)
+PORT=
+PORTHOST=
+
+if [ "$PROXY" = "" ]; then
+  PORT=$(cfg-val .port)
+
+  if [ "$PORT" != "" ]; then
+    # container has a static port to serve on -- let's map it to a unique higher 10000+ port
+
+    # see if we already have a port mapping for this project's container
+    PROXY=$(grep "# $GROUP-$REPO" /etc/caddy/Caddyfile | grep -Eo "reverse_proxy[^#]+" | tr -s ' ' | cut  -f2 -d ' ')
+
+    if [ "$PROXY" = "" ]; then
+      PORTMAX=$(grep reverse_proxy /etc/caddy/Caddyfile | grep -Eo ':1[0-9][0-9][0-9][0-9]' | sort -u | tail -1 | tr -d : | grep . || echo 10000)
+      let PORTHOST="1+$PORTMAX"
+      PROXY=localhost:$PORTHOST
+    else
+      PORTHOST=xxxxxx
+    fi
+  fi
+if
+
 
 
 if [ $CLONE_NEEDED ]; then
   # automatically start docker container & run container setup tasks
   typeset -a ARGS
   ARGS=($(cfg-val .docker.args))
+
+  if [ "$PORTHOST" != "" ]; then
+    ARGS+=(-p $PORTHOST:$PORT)
+  fi
 
   BRANCH_DEFAULT=$(cfg-val .branch.default)
   [ $BRANCH_DEFAULT ]  ||  BRANCH_DEFAULT=$(git rev-parse --abbrev-ref origin/HEAD | cut -f2- -d/)
@@ -180,8 +207,7 @@ done
 # ensure hostname is known to caddy
 grep -E "^$HOST {\$" /etc/caddy/Caddyfile  ||  (
 
-  PROXY=$(cfg-val .reverse_proxy)
-  (
+   (
     echo "$HOST {"
     if [ "$PROXY" = "" ]; then
       echo "
@@ -189,7 +215,7 @@ grep -E "^$HOST {\$" /etc/caddy/Caddyfile  ||  (
 \tfile_server"
 
     else
-      echo "\treverse_proxy  $PROXY"
+      echo "\treverse_proxy  $PROXY # $GROUP-$REPO"
     fi
     echo "}"
   ) | sudo tee -a /etc/caddy/Caddyfile
