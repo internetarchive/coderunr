@@ -22,6 +22,7 @@ $(hostname -f) {
   chmod 666 /prevu/Caddyfile
 )
 
+# xxx persist certs via /prevu/
 
 /usr/sbin/caddy start --config /prevu/Caddyfile &
 

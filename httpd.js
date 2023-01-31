@@ -27,11 +27,10 @@ globalThis.finalHandler = async (req) => {
         await req.body?.pipeTo(destFile.writable)
 
         const clone = await exe(`head -1 ${outfi}`)
-        const repo = clone.split('/').pop().replace(/\.git$/i, '')
         const path = url.searchParams.get('path')
 
         txt = await exe(`head -30 ${outfi}`)
-        warn(`xxx export INCOMING=${outfi} REPO=${esc(repo)} FILE=${esc(path)}  &&  /prevu/deploy.sh`)
+        warn(`xxx export INCOMING=${outfi} FILE=${esc(path)}  &&  /prevu/deploy.sh`)
 
         Deno.removeSync(outfi)
       }
