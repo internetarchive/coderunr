@@ -35,9 +35,8 @@ echo CLONED_CACHE=$CLONED_CACHE
 set -x
 
 
-[ -e $TOP              ] || sudo mkdir -m777 $TOP
-[ -e $TOP/$GROUP       ] || sudo mkdir -m777 $TOP/$GROUP
-[ -e $TOP/$GROUP/$REPO ] || sudo mkdir -m777 $TOP/$GROUP/$REPO
+[ -e $TOP/$GROUP       ] || mkdir -m777 $TOP/$GROUP
+[ -e $TOP/$GROUP/$REPO ] || mkdir -m777 $TOP/$GROUP/$REPO
 
 
 CLONE_NEEDED=
@@ -218,7 +217,7 @@ grep -E "^$HOST {\$" /etc/caddy/Caddyfile  ||  (
       echo "\treverse_proxy  $PROXY # $GROUP-$REPO"
     fi
     echo "}"
-  ) | sudo tee -a /etc/caddy/Caddyfile
+  ) | tee -a /etc/caddy/Caddyfile
 
   docker exec prevu zsh -c '/usr/sbin/caddy reload --config /etc/caddy/Caddyfile'
 )

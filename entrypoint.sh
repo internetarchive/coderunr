@@ -17,6 +17,8 @@ $(hostname -f) {
 \troot * /app/www
 \tfile_server
 }" > /etc/caddy/Caddyfile
+
+  chmod 666 /etc/caddy/Caddyfile
 )
 
 
