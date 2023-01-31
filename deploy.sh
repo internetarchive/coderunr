@@ -18,6 +18,8 @@ set -o allexport
 
 TOP=/prevu
 
+# xxx filter trash chars out of CLONE and BRANCH
+
 GROUP_REPO=$(echo "$CLONE" | perl -pe 's=\.git$==; s=/+$==' |tr : / |rev |cut -f1-2 -d/ |rev)
 GROUP=$(echo "$GROUP_REPO" |cut -d/ -f1)
  REPO=$(echo "$GROUP_REPO" |cut -d/ -f2)
@@ -68,7 +70,6 @@ else
   cp -pr $CLONED_CACHE/ $DIR/
   cd $DIR
   git checkout $BRANCH || git checkout -b $BRANCH # xxx or new unpushed branch
-  echo xxx setup watchers on optional file patterns to run sub-steps
 fi
 
 
@@ -188,8 +189,8 @@ DOCROOT=$(cfg-val .docroot)
 
 # now copy edited/save file in place
 mkdir -p $(dirname "$FILE")
-cat $INCOMING >| "$FILE"
-rm -fv $INCOMING # xxx setexit & always remove on errors
+cat "$INCOMING" >| "$FILE"
+rm -fv "$INCOMING" # xxx setexit & always remove on errors
 
 
 IDX=0
