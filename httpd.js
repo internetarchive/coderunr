@@ -26,11 +26,12 @@ globalThis.finalHandler = async (req) => {
         const destFile = await Deno.open(outfi, { write: true })
         await req.body?.pipeTo(destFile.writable)
 
-        const clone = await exe(`head -1 ${outfi}`)
-        const path = url.searchParams.get('path')
+        const FILE = url.searchParams.get('FILE')
+        const CLONE = url.searchParams.get('CLONE')
+        const BRANCH = url.searchParams.get('BRANCH')
 
         txt = await exe(`head -30 ${outfi}`)
-        warn(`xxx export INCOMING=${outfi} FILE=${esc(path)}  &&  /prevu/deploy.sh`)
+        warn(`INCOMING=${outfi} FILE=${esc(FILE)} CLONE=${esc(CLONE)} BRANCH=${esc(BRANCH)}  /prevu/deploy.sh`)
 
         Deno.removeSync(outfi)
       }

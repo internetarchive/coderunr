@@ -82,12 +82,12 @@ function filechanged(path, file) {
 
   file.text().then((txt) => {
     // warn({ txt })
-    fetch(`/copy?path=${encodeURIComponent(path)}`, {
+    fetch(`/copy?FILE=${encodeURIComponent(path)}&CLONE=${encodeURIComponent(clone)}&BRANCH=${encodeURIComponent(branch)}`, {
       method: 'POST',
       headers: new Headers({
         'content-type': 'application/x-www-form-urlencoded',
       }),
-      body: `${clone}\n${branch}\n${txt}`,
+      body: txt,
     }).then(async (res) => {
       warn('response from httpd:\n', await res.text())
     })

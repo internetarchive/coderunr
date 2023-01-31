@@ -2,6 +2,12 @@
 
 MYDIR=${0:a:h}
 
+# REQUIRED ENV VARS FROM CALLER:
+#   $INCOMING  - name of the new version of file; the new file contents should be in this temp file
+#   $CLONE     - the repo's git clone url
+#   $BRANCH    - name of repo's current git branch
+#   $FILE      - relative path name of file (relative to top dir of repo)
+
 # NOTE: this defines $REGISTRY_FALLBACK and $DOMAIN_WILDCARD
 source $MYDIR/.env
 
@@ -11,8 +17,6 @@ set -o allexport
 # VM host needs: zsh git yq
 
 TOP=/prevu
-CLONE=$(head -1 $INCOMING)
-BRANCH=$(head -2 $INCOMING |tail -1)
 
 GROUP_REPO=$(echo "$CLONE" | perl -pe 's=\.git$==; s=/+$==' |tr : / |rev |cut -f1-2 -d/ |rev)
 GROUP=$(echo "$GROUP_REPO" |cut -d/ -f1)
@@ -184,7 +188,7 @@ DOCROOT=$(cfg-val .docroot)
 
 # now copy edited/save file in place
 mkdir -p $(dirname "$FILE")
-tail -n +3 $INCOMING >| "$FILE" # omit the top 2 lines used for git info
+cat $INCOMING >| "$FILE"
 rm -fv $INCOMING # xxx setexit & always remove on errors
 
 
