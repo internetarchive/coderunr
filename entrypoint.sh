@@ -20,6 +20,6 @@ $(hostname -f) {
 )
 
 
-/usr/sbin/caddy start --config /etc/caddy/Caddyfile
+/usr/sbin/caddy start --config /etc/caddy/Caddyfile &
 
 /app/httpd.js -p5000 --no-cors --no-dotfiles www

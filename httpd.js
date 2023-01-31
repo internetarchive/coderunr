@@ -1,12 +1,11 @@
-#!/usr/bin/env -S deno run --allow-net --allow-read --location=https://archive.org
+#!/usr/bin/env -S deno run --allow-net --allow-read --allow-write=/tmp --allow-run --location=https://archive.org
 
 // import a deno std. minimal webserver capable of static file serving, that's been lightly modified
 // to _also_ be able to run JS code (since we need to handle /details/IDENTIFIER urls/paths).
 import main from 'https://deno.land/x/file_server_plus/mod.ts'
 
 import { warn } from 'https://av.prod.archive.org/js/util/log.js'
-
-const decoder = new TextDecoder()
+import { exe } from 'https://av.prod.archive.org/js/util/cmd.js'
 
 // the static server will call this if it was about to otherwise 404
 // eslint-disable-next-line no-undef
@@ -18,14 +17,21 @@ globalThis.finalHandler = async (req) => {
     const parsed = new URL(req.url)
 
     if (parsed.pathname === '/copy') {
-      let txt = 'get xxx'
+      // xxx token me
+      let txt = ''
       if (req.method === 'POST') {
-        txt = decoder.decode(await Deno.readAll(req.body))
-        warn({ txt })
+        // https://medium.com/deno-the-complete-reference/a-beginners-guide-to-streams-in-deno-760d51750763
+
+        const outfi = await Deno.makeTempFile({ dir: '/tmp' })
+        const destFile = await Deno.open(outfi, { write: true })
+        await req.body?.pipeTo(destFile.writable)
+
+        txt = await exe(`head -30 ${outfi}`) // xxx exe(`cat ${outfi} | /prevu/deploy.sh`)
+        Deno.removeSync(outfi)
       }
 
       return Promise.resolve(new Response(
-        `hiya xxx ${txt}`,
+        txt,
         { status: 200, headers },
       ))
     }

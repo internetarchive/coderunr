@@ -3,7 +3,7 @@ import { warn } from 'https://av.prod.archive.org/js/util/log.js'
 
 // https://developer.chrome.com/articles/file-system-access/
 
-// xxx File System Change Observer:
+// xxx File System Change Observer ('watch' proposal):
 // https://docs.google.com/document/d/1jYXOZGen4z7kNrKnwBk5z4tbGRmGXmQ9nmoyJRm-V9M/edit#heading=h.7nki9mck5t64
 
 const MAX_MESSAGES = 10
@@ -41,7 +41,7 @@ async function scandir(cwd = '', dirh = null) {
 
       if (changed) {
         // eslint-disable-next-line no-use-before-define
-        filechanged(path)
+        filechanged(path, file)
         if (githead) {
           document.getElementById('info').innerHTML = `
             clone url: ${clone}<br>
@@ -74,18 +74,23 @@ async function scandir(cwd = '', dirh = null) {
   }
 }
 
-function filechanged(path) {
+function filechanged(path, file) {
   // eslint-disable-next-line no-use-before-define
   msg(`${path} changed`)
-  fetch('/copy', {
-    method: 'POST',
-    headers: {
-      // 'Content-Type': 'application/json'
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: 'hi\nthere\npork chop\n',
-  }).then(async (res) => {
-    warn('hmm', await res.text(), { res })
+
+  if (path.startsWith('.git/')) return
+
+  file.text().then((txt) => {
+    // warn({ txt })
+    fetch('/copy', {
+      method: 'POST',
+      headers: new Headers({
+        'content-type': 'application/x-www-form-urlencoded',
+      }),
+      body: `${clone}\n${branch}\n${txt}`,
+    }).then(async (res) => {
+      warn('response from httpd:\n', await res.text())
+    })
   })
 }
 
