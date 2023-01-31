@@ -26,7 +26,7 @@ globalThis.finalHandler = async (req) => {
         const destFile = await Deno.open(outfi, { write: true })
         await req.body?.pipeTo(destFile.writable)
 
-        txt = await exe(`head -30 ${outfi}`) // xxx exe(`cat ${outfi} | /prevu/deploy.sh`)
+        txt = await exe(`head -30 ${outfi}`) // xxx export INCOMING=${outfi} REPO=${workspaceFolderBasename} FILE=${fileRelative}  &&  /prevu/deploy.sh
         Deno.removeSync(outfi)
       }
 

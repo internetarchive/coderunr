@@ -185,7 +185,7 @@ DOCROOT=$(cfg-val .docroot)
 # now copy edited/save file in place
 mkdir -p $(dirname "$FILE")
 tail -n +3 $INCOMING >| "$FILE" # omit the top 2 lines used for git info
-rm -fv $INCOMING
+rm -fv $INCOMING # xxx setexit & always remove on errors
 
 
 IDX=0

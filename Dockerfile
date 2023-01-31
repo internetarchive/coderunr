@@ -1,7 +1,7 @@
 FROM denoland/deno:alpine
 
 # `coreutils` for `env -S`
-RUN apk add  zsh coreutils caddy
+RUN apk add  bash zsh coreutils caddy
 
 WORKDIR /app
 COPY . .
