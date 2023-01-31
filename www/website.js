@@ -82,7 +82,7 @@ function filechanged(path, file) {
 
   file.text().then((txt) => {
     // warn({ txt })
-    fetch('/copy', {
+    fetch(`/copy?path=${encodeURIComponent(path)}`, {
       method: 'POST',
       headers: new Headers({
         'content-type': 'application/x-www-form-urlencoded',

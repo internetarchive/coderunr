@@ -5,7 +5,7 @@
 import main from 'https://deno.land/x/file_server_plus/mod.ts'
 
 import { warn } from 'https://av.prod.archive.org/js/util/log.js'
-import { exe } from 'https://av.prod.archive.org/js/util/cmd.js'
+import { exe, esc } from 'https://av.prod.archive.org/js/util/cmd.js'
 
 // the static server will call this if it was about to otherwise 404
 // eslint-disable-next-line no-undef
@@ -14,9 +14,9 @@ globalThis.finalHandler = async (req) => {
   headers.append('content-type', 'text/html')
 
   try {
-    const parsed = new URL(req.url)
+    const url = new URL(req.url)
 
-    if (parsed.pathname === '/copy') {
+    if (url.pathname === '/copy') {
       // xxx token me
       let txt = ''
       if (req.method === 'POST') {
@@ -26,7 +26,13 @@ globalThis.finalHandler = async (req) => {
         const destFile = await Deno.open(outfi, { write: true })
         await req.body?.pipeTo(destFile.writable)
 
-        txt = await exe(`head -30 ${outfi}`) // xxx export INCOMING=${outfi} REPO=${workspaceFolderBasename} FILE=${fileRelative}  &&  /prevu/deploy.sh
+        const clone = await exe(`head -1 ${outfi}`)
+        const repo = clone.split('/').pop().replace(/\.git$/i, '')
+        const path = url.searchParams.get('path')
+
+        txt = await exe(`head -30 ${outfi}`)
+        warn(`xxx export INCOMING=${outfi} REPO=${esc(repo)} FILE=${esc(path)}  &&  /prevu/deploy.sh`)
+
         Deno.removeSync(outfi)
       }
 
