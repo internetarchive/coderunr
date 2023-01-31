@@ -106,10 +106,10 @@ if [ "$PROXY" = "" ]; then
     # container has a static port to serve on -- let's map it to a unique higher 10000+ port
 
     # see if we already have a port mapping for this project's container
-    PROXY=$(grep "# $GROUP-$REPO" /etc/caddy/Caddyfile | grep -Eo "reverse_proxy[^#]+" | tr -s ' ' | cut  -f2 -d ' ')
+    PROXY=$(grep "# $GROUP-$REPO" /prevu/Caddyfile | grep -Eo "reverse_proxy[^#]+" | tr -s ' ' | cut  -f2 -d ' ')
 
     if [ "$PROXY" = "" ]; then
-      PORTMAX=$(grep reverse_proxy /etc/caddy/Caddyfile | grep -Eo ':1[0-9][0-9][0-9][0-9]' | sort -u | tail -1 | tr -d : | grep . || echo 10000)
+      PORTMAX=$(grep reverse_proxy /prevu/Caddyfile | grep -Eo ':1[0-9][0-9][0-9][0-9]' | sort -u | tail -1 | tr -d : | grep . || echo 10000)
       let PORTHOST="1+$PORTMAX"
       PROXY=localhost:$PORTHOST
     else
@@ -204,7 +204,7 @@ done
 
 
 # ensure hostname is known to caddy
-grep -E "^$HOST {\$" /etc/caddy/Caddyfile  ||  (
+grep -E "^$HOST {\$" /prevu/Caddyfile  ||  (
 
    (
     echo "$HOST {"
@@ -217,9 +217,9 @@ grep -E "^$HOST {\$" /etc/caddy/Caddyfile  ||  (
       echo "\treverse_proxy  $PROXY # $GROUP-$REPO"
     fi
     echo "}"
-  ) | tee -a /etc/caddy/Caddyfile
+  ) | tee -a /prevu/Caddyfile
 
-  docker exec prevu zsh -c '/usr/sbin/caddy reload --config /etc/caddy/Caddyfile'
+  docker exec prevu zsh -c '/usr/sbin/caddy reload --config /prevu/Caddyfile'
 )
 
 echo "\n\nhttps://$HOST\n\nSUCCESS PREVU\n\n"

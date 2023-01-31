@@ -15,7 +15,7 @@ work-in-progress
 docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.sock --pull=always \
   -e DOMAIN_WILDCARD=code.archive.org \
   -e REGISTRY_FALLBACK=registry.archive.org \
-  -v /prevu:/prevu -v /tmp:/xxx/tmp -v /etc/caddy:/etc/caddy \
+  -v /prevu:/prevu -v /tmp:/xxx/tmp \
   --restart=always --name prevu -d ghcr.io/internetarchive/prevu:main
 ```
 - Setup VSCode (or similar) to run a command on every file save.

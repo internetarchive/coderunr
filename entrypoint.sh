@@ -1,6 +1,7 @@
 #!/bin/zsh -exu
 
-mkdir -m777 -p /prevu/
+mkdir  -p /prevu/
+chmod 777 /prevu/
 
 cp /app/deploy.sh /prevu/
 
@@ -11,17 +12,17 @@ export REGISTRY_FALLBACK=$REGISTRY_FALLBACK
 
 
 # start with minimal web server setup
-[ -e /etc/caddy/Caddyfile ]  ||  (
+[ -e /prevu/Caddyfile ]  ||  (
   echo "
 $(hostname -f) {
 \troot * /app/www
 \tfile_server
-}" > /etc/caddy/Caddyfile
+}" > /prevu/Caddyfile
 
-  chmod 666 /etc/caddy/Caddyfile
+  chmod 666 /prevu/Caddyfile
 )
 
 
-/usr/sbin/caddy start --config /etc/caddy/Caddyfile &
+/usr/sbin/caddy start --config /prevu/Caddyfile &
 
 /app/httpd.js -p5000 --no-cors --no-dotfiles www
