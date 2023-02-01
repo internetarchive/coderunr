@@ -93,7 +93,7 @@ function cfg-val() {
   echo -n "$VAL"
 }
 function cfg-vals() {
-  # Returns yaml configuration array of values, as mutliple lines, like cfg-val().
+  # Returns yaml configuration array of values, as multiple lines, like cfg-val().
   # You can split the returned string via NEWLINE characters.
   local VAL=$(cfg-val "$1" | grep -E ^- | cut -b3-)
   echo -n "$VAL"
