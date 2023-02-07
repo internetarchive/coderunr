@@ -227,4 +227,4 @@ grep -E "^$HOST {\$" /coderunr/Caddyfile  ||  (
   docker exec coderunr zsh -c '/usr/sbin/caddy reload --config /coderunr/Caddyfile'
 )
 
-echo "\n\nhttps://$HOST\n\nSUCCESS PREVU\n\n"
+echo "\n\nhttps://$HOST\n\nSUCCESS CODERUNR\n\n"
