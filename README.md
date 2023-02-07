@@ -1,4 +1,4 @@
-# prevu - website edits live in seconds
+# coderunr - website edits live in seconds
 
 ## Deploy saved changes to website "preview apps" -- _without_ commits, pushes & full CI/CD
 
@@ -15,8 +15,8 @@ work-in-progress
 docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.sock --pull=always \
   -e DOMAIN_WILDCARD=code.archive.org \
   -e REGISTRY_FALLBACK=registry.archive.org \
-  -v /prevu:/prevu -v /tmp:/xxx/tmp \
-  --restart=always --name prevu -d ghcr.io/internetarchive/prevu:main
+  -v /coderunr:/coderunr -v /tmp:/xxx/tmp \
+  --restart=always --name coderunr -d ghcr.io/internetarchive/coderunr:main
 ```
 - Setup VSCode (or similar) to run a command on every file save.
   - Install 'Run on Save' extension -- use this link since there are 2+ such named extensions (!)
@@ -28,9 +28,9 @@ docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.so
 // Change `example.com` to your `ssh`-able `docker` VM server.
 "runOnSave.statusMessageTimeout": 600000, // allow up to 10 minutes to first-time git clone & setup
 "runOnSave.commands": [{
-  "match": "/dev/", // change to local filename/dir pattern that you'd like using prevu.
+  "match": "/dev/", // change to local filename/dir pattern that you'd like using coderunr.
   // Determine workspace's git clone url and git branch; send with saved file contents to server.
-  "command": "cd '${workspaceFolder}'  &&  export CLONE=$(git config --get remote.origin.url)  BRANCH=$(git rev-parse --abbrev-ref HEAD)  && cat '${file}' | ssh example.com 'export INCOMING=$(mktemp) CLONE='$CLONE' BRANCH='$BRANCH' \"FILE=${fileRelative}\"  &&  cat >| $INCOMING  &&  /prevu/deploy.sh'  &&  echo SUCCESS",
+  "command": "cd '${workspaceFolder}'  &&  export CLONE=$(git config --get remote.origin.url)  BRANCH=$(git rev-parse --abbrev-ref HEAD)  && cat '${file}' | ssh example.com 'export INCOMING=$(mktemp) CLONE='$CLONE' BRANCH='$BRANCH' \"FILE=${fileRelative}\"  &&  cat >| $INCOMING  &&  /coderunr/deploy.sh'  &&  echo SUCCESS",
   "runIn": "backend", // backend|vscode|terminal
   "runningStatusMessage": "🔺🔺🔺 SAVING 🔺🔺🔺",
   "finishStatusMessage": "Saved ✅",
@@ -52,7 +52,7 @@ docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.so
 
 ### Quirks notes
 - petabox repo needs 8010 UDP ferm port opened.
-- As of now, VM running docker `[prevu]` container needs `yq`.  You can get like this (check https://github.com/mikefarah/yq/releases/latest for alternate OS/ARC if not linux amd64):
+- As of now, VM running docker `[coderunr]` container needs `yq`.  You can get like this (check https://github.com/mikefarah/yq/releases/latest for alternate OS/ARC if not linux amd64):
 ```sh
 sudo wget -O  /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.30.8/yq_linux_amd64
 sudo chmod +x /usr/local/bin/yq
@@ -71,10 +71,10 @@ sudo chmod +x /usr/local/bin/yq
 ```bash
 
 # xxx `nom-ssh` variant that `cd` you to proper branch, once inside container, eg:
-nomad alloc exec -i -t -task www-av a208c683 zsh -c 'cd /prevu/main; zsh'
+nomad alloc exec -i -t -task www-av a208c683 zsh -c 'cd /coderunr/main; zsh'
 
 # nom-ssh  (use group-project + branch)
-ssh -t -A code 'docker exec -it ia-petabox bash -c "cd /prevu/master; bash"'
+ssh -t -A code 'docker exec -it ia-petabox bash -c "cd /coderunr/master; bash"'
 
 # nom-logs (use group-project)
 ssh -t -A code docker logs -f ia-petabox

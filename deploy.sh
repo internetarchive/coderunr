@@ -16,7 +16,7 @@ set -o allexport
 
 # VM host needs: zsh git yq
 
-TOP=/prevu
+TOP=/coderunr
 
 # xxx filter trash chars out of CLONE and BRANCH
 
@@ -76,8 +76,8 @@ fi
 
 # now we have enough information to read any YAML customization
 
-CFG=prevu.yml
-[ -e $CFG ]  ||  CFG=/prevu/internetarchive/prevu/main/$GROUP-$REPO.yml # xxx
+CFG=coderunr.yml
+[ -e $CFG ]  ||  CFG=/coderunr/internetarchive/coderunr/main/$GROUP-$REPO.yml # xxx
 
 function cfg-val() {
   # Returns yaml configuration key, or "" if not present/empty
@@ -111,10 +111,10 @@ if [ "$PROXY" = "" ]; then
     # container has a static port to serve on -- let's map it to a unique higher 10000+ port
 
     # see if we already have a port mapping for this project's container
-    PROXY=$(grep "# $GROUP-$REPO" /prevu/Caddyfile | grep -Eo "reverse_proxy[^#]+" | tr -s ' ' | cut  -f2 -d ' ')
+    PROXY=$(grep "# $GROUP-$REPO" /coderunr/Caddyfile | grep -Eo "reverse_proxy[^#]+" | tr -s ' ' | cut  -f2 -d ' ')
 
     if [ "$PROXY" = "" ]; then
-      PORTMAX=$(grep reverse_proxy /prevu/Caddyfile | grep -Eo ':1[0-9][0-9][0-9][0-9]' | sort -u | tail -1 | tr -d : | grep . || echo 10000)
+      PORTMAX=$(grep reverse_proxy /coderunr/Caddyfile | grep -Eo ':1[0-9][0-9][0-9][0-9]' | sort -u | tail -1 | tr -d : | grep . || echo 10000)
       let PORTHOST="1+$PORTMAX"
       PROXY=localhost:$PORTHOST
     else
@@ -148,9 +148,9 @@ if [ $CLONE_NEEDED ]; then
   [[ $CLONE =~ github.com ]]  &&  IMG=$REGISTRY/$GROUP/$REPO:$BRANCH_DEFAULT
 
 
-  if [ "$GROUP/$REPO" != "internetarchive/prevu" ]; then
+  if [ "$GROUP/$REPO" != "internetarchive/coderunr" ]; then
     # www-av fails w/o --security-opt arg xxx _could_ move to www-av.yml if the only one...
-    docker run -d --restart=always --pull=always -v /prevu/$GROUP/${REPO}:/prevu --name=$GROUP-$REPO \
+    docker run -d --restart=always --pull=always -v /coderunr/$GROUP/${REPO}:/coderunr --name=$GROUP-$REPO \
       --security-opt seccomp=unconfined \
       $ARGS $IMG
     sleep 3
@@ -159,7 +159,7 @@ if [ $CLONE_NEEDED ]; then
   (
     IFS=$'\n'
     for CMD in $(cfg-vals .scripts.container.start); do
-      docker exec $GROUP-$REPO sh -c "cd /prevu/$BRANCH && $CMD" # xxx prolly should put all cmds into tmp file, pass file in, exec it
+      docker exec $GROUP-$REPO sh -c "cd /coderunr/$BRANCH && $CMD" # xxx prolly should put all cmds into tmp file, pass file in, exec it
     done
   )
 fi
@@ -172,7 +172,7 @@ if [ $BRANCH_NEEDS_SETUP ]; then
   (
     IFS=$'\n'
     for CMD in $(cfg-vals .scripts.branch.start); do
-      docker exec $GROUP-$REPO sh -c "cd /prevu/$BRANCH && $CMD" # xxx prolly should put all cmds into tmp file, pass file in, exec it
+      docker exec $GROUP-$REPO sh -c "cd /coderunr/$BRANCH && $CMD" # xxx prolly should put all cmds into tmp file, pass file in, exec it
     done
   )
 fi
@@ -184,7 +184,7 @@ fi
 
 DOCROOT=$(cfg-val .docroot)
 [ "$DOCROOT" = "" ] && DOCROOT=www
-[ ! -e $DOCROOT ] && mkdir $DOCROOT && (cd $DOCROOT && wget https://raw.githubusercontent.com/internetarchive/prevu/main/www/index.html )
+[ ! -e $DOCROOT ] && mkdir $DOCROOT && (cd $DOCROOT && wget https://raw.githubusercontent.com/internetarchive/coderunr/main/www/index.html )
 
 
 # now copy edited/save file in place
@@ -200,7 +200,7 @@ while true; do
 
   echo "$FILE" | grep -qE "$TRIGGER" && (
     CMD=$(cfg-val ".triggers[$IDX].cmd")
-    docker exec $GROUP-$REPO sh -c "cd /prevu/$BRANCH && $CMD" # xxx prolly should put all cmds into tmp file, pass file in, exec it
+    docker exec $GROUP-$REPO sh -c "cd /coderunr/$BRANCH && $CMD" # xxx prolly should put all cmds into tmp file, pass file in, exec it
   )
 
   let "IDX=1+$IDX"
@@ -209,7 +209,7 @@ done
 
 
 # ensure hostname is known to caddy
-grep -E "^$HOST {\$" /prevu/Caddyfile  ||  (
+grep -E "^$HOST {\$" /coderunr/Caddyfile  ||  (
 
    (
     echo "$HOST {"
@@ -222,9 +222,9 @@ grep -E "^$HOST {\$" /prevu/Caddyfile  ||  (
       echo "\treverse_proxy  $PROXY # $GROUP-$REPO"
     fi
     echo "}"
-  ) | tee -a /prevu/Caddyfile
+  ) | tee -a /coderunr/Caddyfile
 
-  docker exec prevu zsh -c '/usr/sbin/caddy reload --config /prevu/Caddyfile'
+  docker exec coderunr zsh -c '/usr/sbin/caddy reload --config /coderunr/Caddyfile'
 )
 
 echo "\n\nhttps://$HOST\n\nSUCCESS PREVU\n\n"

@@ -1,29 +1,29 @@
 #!/bin/zsh -exu
 
-mkdir  -p /prevu/
-chmod 777 /prevu/
+mkdir  -p /coderunr/
+chmod 777 /coderunr/
 
-cp /app/deploy.sh /prevu/
+cp /app/deploy.sh /coderunr/
 
 echo "
 export DOMAIN_WILDCARD=$DOMAIN_WILDCARD
 export REGISTRY_FALLBACK=$REGISTRY_FALLBACK
-" >| /prevu/.env
+" >| /coderunr/.env
 
 
 # start with minimal web server setup
-[ -e /prevu/Caddyfile ]  ||  (
+[ -e /coderunr/Caddyfile ]  ||  (
   echo "
 $(hostname -f) {
 \troot * /app/www
 \tfile_server
-}" > /prevu/Caddyfile
+}" > /coderunr/Caddyfile
 
-  chmod 666 /prevu/Caddyfile
+  chmod 666 /coderunr/Caddyfile
 )
 
-# xxx persist certs via /prevu/   /root/.local/share/caddy/
+# xxx persist certs via /coderunr/   /root/.local/share/caddy/
 
-/usr/sbin/caddy start --config /prevu/Caddyfile &
+/usr/sbin/caddy start --config /coderunr/Caddyfile &
 
 /app/httpd.js -p5000 --no-cors --no-dotfiles www

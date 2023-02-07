@@ -31,7 +31,7 @@ globalThis.finalHandler = async (req) => {
         const BRANCH = url.searchParams.get('BRANCH')
 
         txt = await exe(`head -30 ${outfi}`)
-        warn(`INCOMING=${outfi} FILE=${esc(FILE)} CLONE=${esc(CLONE)} BRANCH=${esc(BRANCH)}  /prevu/deploy.sh`)
+        warn(`INCOMING=${outfi} FILE=${esc(FILE)} CLONE=${esc(CLONE)} BRANCH=${esc(BRANCH)}  /coderunr/deploy.sh`)
 
         Deno.removeSync(outfi)
       }
