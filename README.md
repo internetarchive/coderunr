@@ -72,6 +72,9 @@ sudo chmod +x /usr/local/bin/yq
 - xxx "clone" self locally *first* so repo YML overrides in our dir get used
 - xxx make admin script(s) to restart a project (remove dir, docker stop & rm -v, edit Caddyfile)
 - xxx make admin script(s) to restart all projects (remove dir, docker stop & rm -v ..) & coderunr
+- xxx offshoot triggers
+- xxx document repo docroot multiplexing setup
+- xxx offshoot multistage build w/ rendertron makes nav...
 - xxx document repo-based YAML overrides
 - xxx webhooks
   - GL per group
