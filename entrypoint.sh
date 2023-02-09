@@ -3,7 +3,7 @@
 mkdir  -p /coderunr/
 chmod 777 /coderunr/
 
-cp /app/deploy.sh /coderunr/
+cp /app/run.sh /coderunr/
 
 echo "
 export DOMAIN_WILDCARD=$DOMAIN_WILDCARD

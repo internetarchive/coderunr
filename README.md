@@ -35,7 +35,7 @@ docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.so
 "runOnSave.commands": [{
   "match": "/dev/", // change to local filename/dir pattern that you'd like using coderunr.
   // Determine workspace's git clone url and git branch; send saved file contents to server.
-  "command": "cd '${workspaceFolder}'  &&  export CLONE=$(git config --get remote.origin.url)  BRANCH=$(git rev-parse --abbrev-ref HEAD)  && cat '${file}' | ssh example.com 'export INCOMING=$(mktemp) CLONE='$CLONE' BRANCH='$BRANCH' \"FILE=${fileRelative}\"  &&  cat >| $INCOMING  &&  /coderunr/deploy.sh'  &&  echo SUCCESS",
+  "command": "cd '${workspaceFolder}'  &&  export CLONE=$(git config --get remote.origin.url)  BRANCH=$(git rev-parse --abbrev-ref HEAD)  && cat '${file}' | ssh example.com 'export INCOMING=$(mktemp) CLONE='$CLONE' BRANCH='$BRANCH' \"FILE=${fileRelative}\"  &&  cat >| $INCOMING  &&  /coderunr/run.sh'  &&  echo SUCCESS",
   "runIn": "backend", // backend|vscode|terminal
   "runningStatusMessage": "🔺🔺🔺 SAVING 🔺🔺🔺",
   "finishStatusMessage": "Saved ✅",
