@@ -42,7 +42,11 @@ echo BRANCH=$BRANCH
 echo CLONE=$CLONE
 echo CLONED_CACHE=$CLONED_CACHE
 
-set -x
+set +u
+if [ $VERBOSE ]; then
+  set -x
+fi
+set -u
 
 
 [ -e $TOP/$GROUP       ] || mkdir -m777 $TOP/$GROUP
@@ -194,7 +198,7 @@ DOCROOT=$(cfg-val .docroot)
 # now copy edited/save file in place
 mkdir -p $(dirname "$FILE")
 cat "$INCOMING" >| "$FILE"
-rm -fv "$INCOMING" # xxx setexit & always remove on errors
+rm -f "$INCOMING" # xxx setexit & always remove on errors
 
 
 IDX=0
@@ -213,7 +217,7 @@ done
 
 
 # ensure hostname is known to caddy
-grep -E "^$HOST {\$" /coderunr/Caddyfile  ||  (
+grep -qE "^$HOST {\$" /coderunr/Caddyfile  ||  (
 
    (
     echo "$HOST {"
