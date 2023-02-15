@@ -2,7 +2,7 @@
 
 # ₀₀₀₁₀₁  ᕕ( ᐛ )ᕗ
 
-## Deploy saved changes to website "preview apps" -- _without_ commits, pushes & full CI/CD
+## Deploy saved changes to websites -- _without_ commits, pushes & full CI/CD
 
 An opensource project from Internet Archive & tracey.
 
@@ -12,34 +12,32 @@ An opensource project from Internet Archive & tracey.
 
 
 ## From editor save to live website in seconds
-- Setup a DNS wildcard to a Virtual Machine that you can `ssh` into, with `docker`.
-  - VM will need `git` pkg installed.
-- Run our container below, but:
-  - change `code.archive.org` to whatever your DNS wildcard domain is.
-  - change `registry.archive.org` to whatever default docker container registry to use, if needed (repos using github.com/gitlab.com will get autodetected)
+- Setup VSCode (or similar) to run a command on every file save.
+  - Install `CodeRunr` extension:
+    - https://marketplace.visualstudio.com/items?itemName=InternetArchive.coderunr-vscode
+    - [source code](https://github.com/internetarchive/coderunr-vscode)
+  - This will sync your saved file to your CodeRunr Server
+    - It will auto-detect your checked out branch, git clone url, and do various setup, so that you'll get a unique https:// url (with automatic https certs) for each branch.
+- Configure VSCode Settings:
+  - Change `example.com` to your `ssh`-able CodeRunr Server (see below).
+```json
+// Change `example.com` to your `ssh`-able CodeRunr Server.
+"CodeRunr.server": "example.com",
+"CodeRunr.match": "dev/|petabox",
+```
+
+### Prerequisites - CodeRunr Server
+- An admin needs to do a one-time setup of a DNS wildcard to point to a Virtual Machine that you can `ssh` into.
+  - This will be your CodeRunr Server.
+  - The CodeRunr Server needs to have `docker` and `git` packages installed.
+- The admin runs our container below, but:
+  - changes `code.archive.org` to whatever your DNS wildcard domain is.
+  - changes `registry.archive.org` to whatever default docker container registry to use, if needed (repos using github.com/gitlab.com will get autodetected).  This is optional -- you can set it to blank `""` empty string.
 ```sh
 docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.sock --pull=always \
   -e DOMAIN_WILDCARD=code.archive.org \
   -e REGISTRY_FALLBACK=registry.archive.org \
   -v /coderunr:/coderunr --restart=always --name coderunr -d ghcr.io/internetarchive/coderunr:main
-```
-- Setup VSCode (or similar) to run a command on every file save.
-  - Install 'Run on Save' extension -- use this link since there are 2+ such named extensions
-    - https://marketplace.visualstudio.com/items?itemName=pucelle.run-on-save
-    - [source code](https://github.com/pucelle/vscode-run-on-save)
-- Configure VSCode Settings:
-  - Change `example.com` to your `ssh`-able `docker` VM
-```json
-// Change `example.com` to your `ssh`-able `docker` VM server.
-"runOnSave.statusMessageTimeout": 600000, // allow up to 10 minutes to first-time git clone & setup
-"runOnSave.commands": [{
-  "match": "/dev/", // change to local filename/dir pattern that you'd like using coderunr.
-  // Determine workspace's git clone url and git branch; send saved file contents to server.
-  "command": "cd '${workspaceFolder}'  &&  export CLONE=$(git config --get remote.origin.url)  BRANCH=$(git rev-parse --abbrev-ref HEAD)  && cat '${file}' | ssh example.com 'export INCOMING=$(mktemp) CLONE='$CLONE' BRANCH='$BRANCH' \"FILE=${fileRelative}\"  &&  cat >| $INCOMING  &&  /coderunr/run.sh'  &&  echo SUCCESS",
-  "runIn": "backend", // backend|vscode|terminal
-  "runningStatusMessage": "🔺🔺🔺 SAVING 🔺🔺🔺",
-  "finishStatusMessage": "Saved ✅",
-}]
 ```
 
 
@@ -56,7 +54,7 @@ docker run -d --net=host --privileged -v /var/run/docker.sock:/var/run/docker.so
 
 
 ### Quirks notes
-- As of now, VM running docker `[coderunr]` container needs `yq`.  You can get like this (check https://github.com/mikefarah/yq/releases/latest for alternate OS/ARC if not linux amd64):
+- As of now, the CodeRunr Server needs `yq`.  You can get like this (check https://github.com/mikefarah/yq/releases/latest for alternate OS/ARC if not linux amd64):
 ```sh
 sudo wget -O  /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.30.8/yq_linux_amd64
 sudo chmod +x /usr/local/bin/yq
@@ -66,6 +64,7 @@ sudo chmod +x /usr/local/bin/yq
 
 
 ## TODO
+- xxx note: file_server std serving option defaultd to no dir listing, but *does* serve DOTFILES
 - xxx make `.settings.json` config option for verbose logging (switch to less verbose default)
 - xxx commit/push watcher to reset branch (presently does `git pull` on every file saved)
   - wipe local edits for `git push` => `git pull` triggers
