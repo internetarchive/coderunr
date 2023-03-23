@@ -34,6 +34,8 @@ CLONED_CACHE=$TOP/$GROUP/$REPO/__clone
 
 DIR=$TOP/$GROUP/$REPO/$BRANCH
 
+#   C     O     D     E     R     U     N     R
+# 00011 01111 00100 00101 10010 10101 01110 10010
 echo
 echo '₀₀₀₁₀₁₀₀₀₁₀₁₀₀₀₁₀₁₀₀₀₁₀₁₀₀₀₁₀₁₀₀₀₁₀₁₀₀₀₁₀₁₀₀₀₁₀₁₀₀₀₁₀₁₀₀₀₁₀₁ ᕕ( ᐛ )ᕗ'
 echo
