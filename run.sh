@@ -134,7 +134,7 @@ if [ "$PROXY" = "" ]; then
     # For dynamic ports, that's one port per branch.  Otherwise, same port for all branches.
     SEARCH="$GROUP-$REPO"
     [ "$PORT" = "-1" ]  &&  SEARCH=$SLUG
-    PROXY=$(grep -E "# $GROUP-$REPO$" /coderunr/Caddyfile | grep -Eo "reverse_proxy[^#]+" | tr -s ' ' | cut  -f2 -d ' ')
+    PROXY=$(grep -E "# $SEARCH$" /coderunr/Caddyfile | grep -Eo "reverse_proxy[^#]+" | tr -s ' ' | cut  -f2 -d ' ')
 
     if [ "$PROXY" = "" ]; then
       PORTMAX=$(grep reverse_proxy /coderunr/Caddyfile | grep -Eo ':1[0-9][0-9][0-9][0-9]' | sort -u | tail -1 | tr -d : | grep . || echo 10000)
