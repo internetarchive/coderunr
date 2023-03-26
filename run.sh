@@ -63,10 +63,16 @@ if [ $CLONE_NEEDED ]; then
   git clone $CLONE $CLONED_CACHE
 fi
 
+function git-pull() {
+  git pull  ||  (
+    ( git stash --include-untracked && git stash drop|cat ) 2>dev/null >/dev/null  && git pull
+  )
+}
+
 
 # xxx trigger on main/master branch pushes --> restart docker container
 cd $CLONED_CACHE
-git pull
+git-pull
 
 
 # get branch setup if needed.  `cd` into checked out branch dir
@@ -74,7 +80,7 @@ if [ -e $DIR ]; then
   BRANCH_NEEDS_SETUP=
   cd $DIR
   git checkout -b $BRANCH 2>/dev/null  ||  git checkout $BRANCH  # xxx necessary?
-  git pull || ( git stash && git stash drop|cat && git pull )
+  git-pull
 else
   BRANCH_NEEDS_SETUP=1
   cp -pr $CLONED_CACHE/ $DIR/
