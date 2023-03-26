@@ -10,4 +10,6 @@ sudo find /coderunr/$GROUP_REPO -ls -delete
 sudo docker stop  $SLUG
 sudo docker rm -v $SLUG
 
-fgrep -C 2 $SLUG /coderunr/Caddyfile
+egrep -v "# $SLUG$" /coderunr/Caddyfile | sudo tee /tmp/Caddyfile
+sudo mv /tmp/Caddyfile /coderunr/Caddyfile
+

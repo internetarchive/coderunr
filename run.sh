@@ -149,7 +149,7 @@ if [ $CLONE_NEEDED ]; then
   typeset -a ARGS
   ARGS=($(cfg-val .docker.args))
 
-  if [ "$PORT" = "-1 "]; then
+  if [ "$PORT" = "-1" ]; then
     ARGS+=(--net=host)
   elif [ "$PORTHOST" != "" ]; then
     ARGS+=(-p $PORTHOST:$PORT/tcp)
