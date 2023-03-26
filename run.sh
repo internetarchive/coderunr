@@ -130,7 +130,7 @@ if [ "$PROXY" = "" ]; then
     # container has a static port to serve on -- let's map it to a unique higher 10000+ port
 
     # see if we already have a port mapping for this project's container
-    PROXY=$(grep "# $GROUP-$REPO" /coderunr/Caddyfile | grep -Eo "reverse_proxy[^#]+" | tr -s ' ' | cut  -f2 -d ' ')
+    PROXY=$(grep -E "# $GROUP-$REPO$" /coderunr/Caddyfile | grep -Eo "reverse_proxy[^#]+" | tr -s ' ' | cut  -f2 -d ' ')
 
     if [ "$PROXY" = "" ]; then
       PORTMAX=$(grep reverse_proxy /coderunr/Caddyfile | grep -Eo ':1[0-9][0-9][0-9][0-9]' | sort -u | tail -1 | tr -d : | grep . || echo 10000)
