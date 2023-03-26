@@ -65,7 +65,7 @@ fi
 
 function git-pull() {
   git pull  ||  (
-    ( git stash --include-untracked && git stash drop|cat ) 2>dev/null >/dev/null  && git pull
+    ( git stash --include-untracked && git stash drop|cat ) 2>/dev/null >/dev/null  && git pull
   )
 }
 
