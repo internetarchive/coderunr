@@ -27,7 +27,8 @@ GROUP=$(echo "$GROUP_REPO" |cut -d/ -f1)
 EXTRA="-$BRANCH"
 [ $BRANCH = main   ] && EXTRA=
 [ $BRANCH = master ] && EXTRA=
-HOST=${REPO}${EXTRA}.$DOMAIN_WILDCARD # xxx optional username if collision or yml config to use them
+SLUG=${REPO}${EXTRA}
+HOST=${SLUG}.$DOMAIN_WILDCARD # xxx optional username if collision or yml config to use them
 
 CLONED_CACHE=$TOP/$GROUP/$REPO/__clone
 
@@ -129,7 +130,10 @@ if [ "$PROXY" = "" ]; then
   if [ "$PORT" != "" ]; then
     # container has a static port to serve on -- let's map it to a unique higher 10000+ port
 
-    # see if we already have a port mapping for this project's container
+    # See if we already have a port mapping for this project's container.
+    # For dynamic ports, that's one port per branch.  Otherwise, same port for all branches.
+    SEARCH="$GROUP-$REPO"
+    [ "$PORT" = "-1" ]  &&  SEARCH=$SLUG
     PROXY=$(grep -E "# $GROUP-$REPO$" /coderunr/Caddyfile | grep -Eo "reverse_proxy[^#]+" | tr -s ' ' | cut  -f2 -d ' ')
 
     if [ "$PROXY" = "" ]; then
