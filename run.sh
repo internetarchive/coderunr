@@ -115,6 +115,9 @@ PORT=
 PORTHOST=
 
 if [ "$PROXY" = "" ]; then
+  # NOTE: port: -1  means to have coderunr pick a port, for each branch of your repo to listen on
+  #       It will pass the port number in as env var CODERUNR_PORT into `scripts.branch.start`
+  #       commands.
   PORT=$(cfg-val .port)
 
   if [ "$PORT" != "" ]; then
@@ -140,7 +143,9 @@ if [ $CLONE_NEEDED ]; then
   typeset -a ARGS
   ARGS=($(cfg-val .docker.args))
 
-  if [ "$PORTHOST" != "" ]; then
+  if [ "$PORT" = "-1 "]; then
+    ARGS+=(--net=host)
+  elif [ "$PORTHOST" != "" ]; then
     ARGS+=(-p $PORTHOST:$PORT/tcp)
   fi
 
@@ -182,7 +187,7 @@ if [ $BRANCH_NEEDS_SETUP ]; then
   (
     IFS=$'\n'
     for CMD in $(cfg-vals .scripts.branch.start); do
-      docker exec $GROUP-$REPO sh -c "cd /coderunr/$BRANCH && $CMD" # xxx prolly should put all cmds into tmp file, pass file in, exec it
+      docker exec -e CODERUNR_PORT="$PORTHOST" $GROUP-$REPO sh -c "cd /coderunr/$BRANCH && $CMD" # xxx prolly should put all cmds into tmp file, pass file in, exec it
     done
   )
 fi
@@ -219,19 +224,19 @@ done
 
 
 # ensure hostname is known to caddy
-grep -qE "^$HOST {\$" /coderunr/Caddyfile  ||  (
+grep -qE "^$HOST \{" /coderunr/Caddyfile  ||  (
 
    (
-    echo "$HOST {"
+    echo "$HOST { # $GROUP-$REPO"
     if [ "$PROXY" = "" ]; then
       echo "
-\troot * $DIR/$DOCROOT
-\tfile_server"
+\troot * $DIR/$DOCROOT # $GROUP-$REPO
+\tfile_server # $GROUP-$REPO"
 
     else
       echo "\treverse_proxy  $PROXY # $GROUP-$REPO"
     fi
-    echo "}"
+    echo "} # $GROUP-$REPO"
   ) | tee -a /coderunr/Caddyfile
 
   docker exec coderunr zsh -c '/usr/sbin/caddy reload --config /coderunr/Caddyfile'
