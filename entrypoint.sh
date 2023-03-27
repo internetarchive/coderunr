@@ -26,4 +26,5 @@ $(hostname -f) {
 
 /usr/sbin/caddy start --config /coderunr/Caddyfile &
 
-/app/httpd.js -p5000 --no-cors --no-dotfiles www
+cd www
+../httpd.js

@@ -7,4 +7,4 @@ WORKDIR /app
 COPY . .
 
 # USER deno
-CMD [ "/app/entrypoint.sh" ]
+CMD [ "./entrypoint.sh" ]
