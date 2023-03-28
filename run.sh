@@ -154,7 +154,7 @@ if [ $CLONE_NEEDED ]; then
   ARGS=($(cfg-val .docker.args))
 
   if [ "$PORT" = "-1" ]; then
-    ARGS+=(--net=host)
+    ARGS+=(--net=host -e CODERUNR_PORT=$PORTHOST)
   elif [ "$PORTHOST" != "" ]; then
     ARGS+=(-p $PORTHOST:$PORT/tcp)
   fi
