@@ -64,15 +64,11 @@ sudo chmod +x /usr/local/bin/yq
 
 
 ## TODO
-- xxx note: file_server std serving option defaultd to no dir listing, but *does* serve DOTFILES
-- xxx make `.settings.json` config option for verbose logging (switch to less verbose default)
-- xxx commit/push watcher to reset branch (presently does `git pull` on every file saved)
-  - wipe local edits for `git push` => `git pull` triggers
+- xxx note: httpd.js no dir listings, but *does* serve DOTFILES
 - xxx "clone" self locally *first* so repo YML overrides in our dir get used
-- xxx make admin script(s) to restart a project (remove dir, docker stop & rm -v, edit Caddyfile)
 - xxx make admin script(s) to restart all projects (remove dir, docker stop & rm -v ..) & coderunr
 - xxx offshoot triggers
-- xxx document repo docroot multiplexing setup
+- xxx document repo docroot multiplexing setups
 - xxx offshoot multistage build w/ rendertron makes nav...
 - xxx document repo-based YAML overrides
 - xxx webhooks
