@@ -35,4 +35,4 @@ httpd((req, headers) => {
 
     return new Response('', { headers })
   }
-}, { cors: false })
+}, { cors: false, ls: false })
