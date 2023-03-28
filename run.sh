@@ -65,8 +65,13 @@ if [ $CLONE_NEEDED ]; then
 fi
 
 function git-pull() {
-  git pull  ||  (
-    ( git stash --include-untracked && git stash drop|cat ) 2>/dev/null >/dev/null  && git pull
+  # If normal pull fails, make sure no local mods are blocking the pull.
+  # If git pull still fails, it could be a new branch on the editor's end which got pushed to origin
+  #    since we started tracking it.
+  git pull  ||  ( \
+    ( git stash --include-untracked && git stash drop|cat ) 2>/dev/null >/dev/null  &&  ( \
+      git pull  ||  ( git branch --set-upstream-to=origin/$BRANCH $BRANCH  &&  git pull ) \
+    )
   )
 }
 
