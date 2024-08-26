@@ -75,7 +75,7 @@ sudo chmod +x /usr/local/bin/yq
   - GL per group
   - GH per organization
 
-## Work in Progress
+## Future R&D - Work in Progress
 ```bash
 
 # xxx `nom-ssh` variant that `cd` you to proper branch, once inside container, eg:
