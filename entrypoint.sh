@@ -22,7 +22,9 @@ $(hostname -f) {
   chmod 666 /coderunr/Caddyfile
 )
 
-# xxx persist certs via /coderunr/   /root/.local/share/caddy/
+mkdir -p /root/.local/share
+mkdir -p /coderunr/__certs
+ln -s /coderunr/__certs  /root/.local/share/caddy
 
 /usr/sbin/caddy start --config /coderunr/Caddyfile &
 
