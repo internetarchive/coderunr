@@ -1,0 +1,8 @@
+on: push
+jobs:
+  cicd:
+    uses: internetarchive/cicd/.github/workflows/cicd.yml@main
+    with:
+      PLATFORMS: 'linux/amd64, linux/arm64'
+      NO_TEST: true
+      NOMAD_VAR_NO_DEPLOY: true
