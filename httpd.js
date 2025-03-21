@@ -4,8 +4,8 @@
 // to _also_ be able to run JS code.
 import httpd from 'https://deno.land/x/httpd/mod.js'
 
-import { warn } from 'https://av.prod.archive.org/js/util/log.js'
-import { exe, esc } from 'https://av.prod.archive.org/js/util/cmd.js'
+import { warn } from 'https://av.archive.org/js/util/log.js'
+import { exe, esc } from 'https://av.archive.org/js/util/cmd.js'
 
 // eslint-disable-next-line consistent-return
 httpd((req, headers) => {

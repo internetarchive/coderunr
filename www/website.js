@@ -1,4 +1,4 @@
-import { warn } from 'https://av.prod.archive.org/js/util/log.js'
+import { warn } from 'https://av.archive.org/js/util/log.js'
 
 
 // https://developer.chrome.com/articles/file-system-access/
