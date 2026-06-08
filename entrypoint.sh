@@ -24,6 +24,7 @@ $(hostname -f) {
 
 mkdir -p /root/.local/share
 mkdir -p /coderunr/__certs
+mv /root/.local/share/caddy /root/.local/share/caddy.orig || true
 ln -s /coderunr/__certs  /root/.local/share/caddy
 
 /usr/sbin/caddy start --config /coderunr/Caddyfile &
